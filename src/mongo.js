@@ -1,7 +1,7 @@
-var Mongo = function (cfg, logger, onConnected) {
+var Mongo = function (cfg, context, onConnected) {
     this.mongodb = require('mongodb');
     this.cfg = cfg;//数据库配置
-    this.logger = logger;//日志记录器
+    this.logger = context.getLogger('mongo', __filename);//日志记录器
     this.db = null;//数据库实例
     this.set = {};//数据表集合
     this.connect(null, onConnected);
@@ -382,13 +382,12 @@ Mongo.prototype.getMonthStart = function (baseDate, offsetMonth) {
 
 module.exports = {
     /**
-     * @param cfg 数据库配置信息
-     * @param logFactory 日志工厂
-     * @param category 日志分类
+     * @param cfg 数据库配置
+     * @param context 应用类实例
      * @param onConnected 数据库连接后的回调函数
      * @returns {Mongo} 类实例
      */
-    create: function (cfg, logFactory, category, onConnected) {
-        return new Mongo(cfg, logFactory.getLogger(category, __filename), onConnected);
+    create: function (cfg, context, onConnected) {
+        return new Mongo(cfg, context, onConnected);
     }
 };
