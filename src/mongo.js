@@ -15,10 +15,10 @@ Mongo.prototype.connect = function (name, callback) {
         self.onConnected(name, callback);
     } else {
         self.mongodb.MongoClient.connect(self.cfg.url, self.cfg.opts || {}, function (error, db) {
-            if (error === null) {
+            if (!error) {
                 if (self.cfg.user && self.cfg.pwd) {
                     db.authenticate(self.cfg.user, self.cfg.pwd, function (error, result) {
-                        if (error === null) {
+                        if (!error) {
                             self.logger.info('mongo authenticate success. ');
                             self.db = db;
                             self.onConnected(name, callback);
@@ -70,7 +70,7 @@ Mongo.prototype.insertOneDoc = function (name, doc, options, onSuccess, onError)
     }
     self.connect(name, function (store) {
         store.insertOne(doc, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(doc, result.result.n);
                 }
@@ -101,7 +101,7 @@ Mongo.prototype.insertManyDocs = function (name, docs, options, onItem, onSucces
     }
     self.connect(name, function (store) {
         store.insertMany(docs, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(docs, result.result.n);
                 }
@@ -119,7 +119,7 @@ Mongo.prototype.findOneDoc = function (name, query, options, onSuccess, onError)
     var self = this;
     self.connect(name, function (store) {
         store.findOne(query, options, function (error, doc) {
-            if (error === null) {
+            if (!error) {
                 if (doc) {
                     if (onSuccess) {
                         onSuccess(doc);
@@ -143,9 +143,9 @@ Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limi
     var self = this;
     self.connect(name, function (store) {
         store.find(query, options).sort(sort).skip(start).limit(limit).toArray(function (error, docs) {
-            if (error === null) {
+            if (!error) {
                 store.count(query, function (error, total) {
-                    if (error === null) {
+                    if (!error) {
                         if (join && docs.length > 0) {
                             //模拟关系数据库join查询,当前只支持 “单个字段 双表 左外连接”
                             var or = [];
@@ -158,7 +158,7 @@ Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limi
                             join.sort = join.sort || {};
                             self.connect(join.target, function (target) {
                                 target.find({$or: or}, join.options).sort(join.sort).toArray(function (error, items) {
-                                    if (error === null) {
+                                    if (!error) {
                                         for (var i = 0; i < docs.length; i++) {
                                             var doc = docs[i];
                                             doc[join.root] = [];
@@ -206,7 +206,7 @@ Mongo.prototype.updateOneDoc = function (name, filter, update, options, onSucces
     var self = this;
     self.connect(name, function (store) {
         store.updateOne(filter, update, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(result.result.n);
                 }
@@ -224,7 +224,7 @@ Mongo.prototype.updateManyDocs = function (name, filter, update, options, onSucc
     var self = this;
     self.connect(name, function (store) {
         store.updateMany(filter, update, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(result.result.n);
                 }
@@ -242,7 +242,7 @@ Mongo.prototype.findAndUpdateOneDoc = function (name, filter, update, options, o
     var self = this;
     self.connect(name, function (store) {
         store.findOneAndUpdate(filter, update, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (result.value) {
                     if (onSuccess) {
                         onSuccess(result.value);
@@ -266,7 +266,7 @@ Mongo.prototype.deleteOneDoc = function (name, filter, options, onSuccess, onErr
     var self = this;
     self.connect(name, function (store) {
         store.deleteOne(filter, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(result.result.n);
                 }
@@ -284,7 +284,7 @@ Mongo.prototype.deleteManyDocs = function (name, filter, options, onSuccess, onE
     var self = this;
     self.connect(name, function (store) {
         store.deleteMany(filter, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(result.result.n);
                 }
@@ -301,7 +301,7 @@ Mongo.prototype.count = function (name, query, onSuccess, onError, context) {
     var self = this;
     self.connect(name, function (store) {
         store.count(query, function (error, total) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(total, context);
                 }
@@ -319,7 +319,7 @@ Mongo.prototype.aggregate = function (name, pipeline, options, onSuccess, onErro
     var self = this;
     self.connect(name, function (store) {
         store.aggregate(pipeline, options, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (onSuccess) {
                     onSuccess(result, context);
                 }
@@ -342,7 +342,7 @@ Mongo.prototype.increment = function (name, key, step, onSuccess, onError) {
         }, {
             returnOriginal: false
         }, function (error, result) {
-            if (error === null) {
+            if (!error) {
                 if (result.value) {
                     if (onSuccess) {
                         onSuccess(result.value[key]);
@@ -379,11 +379,15 @@ Mongo.prototype.getMonthStart = function (baseDate, offsetMonth) {
     var fd = new Date(baseDate.getFullYear(), baseDate.getMonth() + offsetMonth, 1).format('yyyy-MM-01 00:00:00');
     return Date.parse(fd);
 };
-/**
- *
- * @type {{create: module.exports.create}}
- */
+
 module.exports = {
+    /**
+     * @param cfg 数据库配置信息
+     * @param logFactory 日志工厂
+     * @param category 日志分类
+     * @param onConnected 数据库连接后的回调函数
+     * @returns {Mongo} 类实例
+     */
     create: function (cfg, logFactory, category, onConnected) {
         return new Mongo(cfg, logFactory.getLogger(category, __filename), onConnected);
     }

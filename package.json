@@ -1,1 +1,41 @@
-{}
+{
+  "name": "ghost3a",
+  "version": "1.0.0",
+  "description": "web服务器框架、websocket游戏服务器框架",
+  "main": "ghost3a.js",
+  "scripts": {
+    "test1": "node ./test/app.js development 8080 master",
+    "test2": "node ./test/app.js development 8081 slave",
+    "test3": "node ./test/app.js production 8082 master",
+    "test4": "node ./test/app.js production 8083 slave"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yangfanyu/node-ghost3a.git"
+  },
+  "keywords": [
+    "node",
+    "web",
+    "websocket",
+    "game"
+  ],
+  "author": "yangfanyu",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/yangfanyu/node-ghost3a/issues"
+  },
+  "homepage": "https://github.com/yangfanyu/node-ghost3a#readme",
+  "dependencies": {
+    "body-parser": "1.17.1",
+    "compression": "1.6.2",
+    "cookie-parser": "1.4.3",
+    "express": "4.16.2",
+    "log4js": "1.1.1",
+    "mongodb": "2.2.33",
+    "multer": "1.3.0",
+    "express-xml-bodyparser": "0.3.0",
+    "node-schedule": "1.2.5",
+    "request": "2.83.0",
+    "xml2js": "0.4.19"
+  }
+}

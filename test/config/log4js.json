@@ -1,0 +1,34 @@
+{
+  "appenders": [
+    {
+      "type": "console"
+    },
+    {
+      "type": "file",
+      "filename": "${opts:base}/logs/context-${opts:type}-${opts:port}.log",
+      "maxLogSize": 8388608,
+      "layout": {
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "context"
+    },
+    {
+      "type": "file",
+      "filename": "${opts:base}/logs/mongo-${opts:type}-${opts:port}.log",
+      "maxLogSize": 8388608,
+      "layout": {
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "mongo"
+    }
+  ],
+  "levels": {
+    "console": "DEBUG",
+    "context": "DEBUG",
+    "mongo": "DEBUG"
+  },
+  "replaceConsole": true,
+  "lineDebug": true
+}

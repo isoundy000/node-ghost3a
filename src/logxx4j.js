@@ -1,38 +1,38 @@
 var log4js = require('log4js');
 var logConfig = {};
 var lineDebug = false;
-var LogXX = function (category, filename, serverTag) {
-    this.log = log4js.getLogger(category);
+var Logxx4j = function (category, filename, serverTag) {
+    this.logger = log4js.getLogger(category);
     this.category = category;
     this.filename = filename ? "[" + filename + "] " : "";
     this.serverTag = serverTag ? "[" + serverTag + "] " : "";
 };
-LogXX.prototype.trace = function () {
+Logxx4j.prototype.trace = function () {
     arguments[0] = this.getPrefix("trace") + arguments[0];
-    this.log.trace.apply(this.log, arguments);
+    this.logger.trace.apply(this.logger, arguments);
 };
-LogXX.prototype.debug = function () {
+Logxx4j.prototype.debug = function () {
     arguments[0] = this.getPrefix("debug") + arguments[0];
-    this.log.debug.apply(this.log, arguments);
+    this.logger.debug.apply(this.logger, arguments);
 };
-LogXX.prototype.info = function () {
+Logxx4j.prototype.info = function () {
     arguments[0] = this.getPrefix("info") + arguments[0];
-    this.log.info.apply(this.log, arguments);
+    this.logger.info.apply(this.logger, arguments);
 
 };
-LogXX.prototype.warn = function () {
+Logxx4j.prototype.warn = function () {
     arguments[0] = this.getPrefix("warn") + arguments[0];
-    this.log.warn.apply(this.log, arguments);
+    this.logger.warn.apply(this.logger, arguments);
 };
-LogXX.prototype.error = function () {
+Logxx4j.prototype.error = function () {
     arguments[0] = this.getPrefix("error") + arguments[0];
-    this.log.error.apply(this.log, arguments);
+    this.logger.error.apply(this.logger, arguments);
 };
-LogXX.prototype.fatal = function () {
+Logxx4j.prototype.fatal = function () {
     arguments[0] = this.getPrefix("fatal") + arguments[0];
-    this.log.fatal.apply(this.log, arguments);
+    this.logger.fatal.apply(this.logger, arguments);
 };
-LogXX.prototype.getPrefix = function (level) {
+Logxx4j.prototype.getPrefix = function (level) {
     return colorize((lineDebug ? (getLine() + ": ") : "") + this.filename, colours[level]) + this.serverTag;
 };
 /**
@@ -83,17 +83,23 @@ function colorizeStart(style) {
 function colorizeEnd(style) {
     return style ? '\x1B[' + styles[style][1] + 'm' : '';
 }
-/**
- *
- * @type {{configure: module.exports.configure, getLogger: module.exports.getLogger}}
- */
+
 module.exports = {
+    /**
+     * @param cfg 日志配置文件
+     */
     configure: function (cfg) {
         logConfig = cfg;
         lineDebug = !!cfg.lineDebug;
         log4js.configure(cfg);
     },
+    /**
+     * @param category 日志分类
+     * @param filename 调用层文件名
+     * @param serverTag 服务器标签
+     * @returns {Logxx4j} 类实例
+     */
     getLogger: function (category, filename, serverTag) {
-        return new LogXX(category, filename, serverTag);
+        return new Logxx4j(category, filename, serverTag);
     }
 };

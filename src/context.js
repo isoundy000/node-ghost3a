@@ -5,24 +5,24 @@ var path = require('path'),
     multer = require('multer'),
     fs = require('fs'),
     crypto = require('crypto'),
-    logxx4j = require('./logxx');
+    logxx4j = require('./logxx4j');
 var Context = function (base, env, port, type) {
     this.base = base;
     this.env = env;
     this.port = port;
     this.type = type;
-    this.logcfg = this.loadLog4js();
-    this.logger = this.getLogger("context", __filename);
     this.config = {
         serverConfig: {
             nameSpace: "/default",
             ssl: false,
             useGzip: false,
             cookieSecret: false,
-            uploadDir: this.getBase() + '/files',
+            uploadDir: this.base + '/files',
             uploadSize: 1024 * 1024 * 10 //字节
         }
     };
+    this.logcfg = this.loadLog4js();
+    this.logger = this.getLogger("context", __filename);
     this.express = null;
     this.webapp = null;
     this.server = null;
@@ -110,19 +110,19 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     this.access = access;
     this.registerUpload();
     if (config.useGzip) {
-        this.webapp.use(compress());//放在最前面,这是中间件的顺序关系，这样可以保证所有内容都经过压缩
+        this.webapp.use(compress());//放在最前面,这是中间件的顺序关系，这样可以保证所有内容都经过压缩（框架底层已经过滤掉图片）
     }
     if (config.cookieSecret) {
-        this.webapp.use(cookieParser(config.cookieSecret));//若需要使用签名，需要指定一个secret字符串,否者会报错
+        this.webapp.use(cookieParser(config.cookieSecret));//若需要使用签名，需要指定一个secret字符串
     }
     this.webapp.use(bodyParser.json());//用于解析application/json
     this.webapp.use(bodyParser.urlencoded({extended: true}));//用户解析application/x-www-form-urlencoded
     this.webapp.all('/*', function (req, res, next) {
-        logger.info(self.getIP(req), req.originalUrl);
+        logger.info(self.getIP(req), req.originalUrl);//打印出所有请求路径
         next();
     });
     if (onLoadModule) {
-        onLoadModule.call(this);//加载自定义模块 或者静态资源
+        onLoadModule.call(this);//加载自定义模块或静态资源
     }
     this.registerApi();
     if (onRegisterApi) {
@@ -209,10 +209,10 @@ Context.prototype.registerApi = function () {
     });
     this.webapp.all(config.nameSpace + '/:store/upload', function (req, res) {
         var store = req.params.store;
-        self.upload.single('file')(req, res, function (err) {
+        self.upload.single('file')(req, res, function (error) {
             if (req.file) {
                 logger.debug('req.file -> \n', req.file);
-                if (err === null) {
+                if (!error) {
                     var data = req.body;
                     data._path = req.file.path.replace(new RegExp("\\\\", 'gm'), '/').replace(config.uploadDir, '');//windows系统下分隔符为'\'
                     data._size = req.file.size;
@@ -225,24 +225,24 @@ Context.prototype.registerApi = function () {
                             message: '上传文件成功',
                             data: obj
                         });
-                    }, function (err) {
+                    }, function (error) {
                         res.json({
                             success: false,
-                            message: err.toString(),
+                            message: error.toString(),
                             command: 500
                         });
                     });
                 } else {
                     res.json({
                         success: false,
-                        message: err.toString(),
+                        message: error.toString(),
                         command: 501
                     });
                 }
             } else {
                 res.json({
                     success: false,
-                    message: err ? err.toString() : '上传文件失败',
+                    message: error ? error.toString() : '上传文件失败',
                     command: 400
                 });
             }
@@ -266,25 +266,27 @@ Context.prototype.makeDirs = function (dirpath, mode, callback) {
         }
     });
 };
-Context.prototype.printInfo = function (log, cfg, sevCfg) {
-    var info = {
+Context.prototype.printInfo = function (printConfig, printLogCfg) {
+    this.logger.info('command info ->\n', JSON.stringify({
         base: this.base,
         env: this.env,
         port: this.port,
-        type: this.type,
-        logcfg: log ? this.logcfg : null,
-        config: cfg ? this.config : null,
-        serverConfig: sevCfg ? this.config.serverConfig : null
-    };
-    this.logger.info(JSON.stringify(info, null, 2));
+        type: this.type
+    }, null, 2));
+    if (printConfig) {
+        this.logger.info('context config ->\n', JSON.stringify(this.config, null, 2));
+    }
+
+    if (printLogCfg) {
+        this.logger.info('logxx4j config ->\n', JSON.stringify(this.logcfg, null, 2));
+    }
 };
 /**
- *
- * @param base
- * @param env
- * @param port
- * @param type
- * @returns {Context}
+ * @param base 服务器根目录
+ * @param env 服务器环境类型（如：development、production等自由定义）
+ * @param port 服务器端口号
+ * @param type 服务器种类（如：master、slave等自由定义）
+ * @returns {Context} 类实例
  */
 module.exports = function (base, env, port, type) {
     return new Context(base, env, port, type);

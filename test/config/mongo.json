@@ -1,0 +1,18 @@
+{
+  "development": {
+    "url": "mongodb://127.0.0.1:27017/test_development",
+    "user": null,
+    "pwd": null,
+    "opts": {
+      "poolSize": 8
+    }
+  },
+  "production": {
+    "url": "mongodb://127.0.0.1:27017/test_production",
+    "user": null,
+    "pwd": null,
+    "opts": {
+      "poolSize": 8
+    }
+  }
+}
