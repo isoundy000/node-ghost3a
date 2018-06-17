@@ -105,7 +105,11 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     var config = this.config.serverConfig;
     this.express = require('express');
     this.webapp = this.express();
-    this.server = config.ssl ? require('https').createServer(config.ssl, this.webapp) : require('http').createServer(this.webapp);
+    this.server = config.ssl ? require('https').createServer({
+        type: config.ssl.type,
+        key: fs.readFileSync(config.ssl.key),
+        cert: fs.readFileSync(config.ssl.cert)
+    }, this.webapp) : require('http').createServer(this.webapp);
     this.mongo = mongo;
     this.access = access;
     this.registerUpload();
