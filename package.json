@@ -18,7 +18,8 @@
     "node",
     "web",
     "websocket",
-    "game"
+    "game",
+    "server"
   ],
   "author": "yangfanyu",
   "license": "GPL-3.0",
