@@ -1,6 +1,3 @@
-/**
- * Created by yangfanyu on 16/10/9.
- */
 var Access = {
     auth: function (store, method, req, onSuccess, onError) {
         console.log("我是自定义的权限验证函数");

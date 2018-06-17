@@ -4,7 +4,7 @@ var ghost3a = require("../ghost3a"),
  * 初始化
  */
 var app = ghost3a.createWebApp();
-app.configure("production|development", function () {
+app.configure("development|production", function () {
     app.set("serverConfig", {
         nameSpace: '/test',
         useGzip: true,
@@ -15,11 +15,11 @@ app.configure("production|development", function () {
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     app.start(mongo, access, function () {
-        app.configure("production|development", function () {
+        app.configure("development|production", function () {
             app.webapp.use('/', app.express.static('./test/web', {
                 maxAge: app.get("maxAge")
             }));
-            app.webapp.use('/files', app.express.static('./files', {
+            app.webapp.use('/files', app.express.static('./test/files', {
                 maxAge: app.get("maxAge")
             }));
         });
