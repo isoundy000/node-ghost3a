@@ -4,18 +4,24 @@ var ghost3a = require("../ghost3a"),
  * 初始化
  */
 var app = ghost3a.createWebApp();
-app.loadLogx4js(app.getBase() + '/config/logx4js.json');
+app.loadLogx4js(app.getBase() + '/config/logx4js.json');//最先调用以便输出后续步骤的日志
+app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
 app.configure("development|production", function () {
     app.set("serverConfig", {
         nameSpace: '/test',
         useGzip: true,
         cookieSecret: '1234567890'
     });
+});
+app.configure("development", function () {
     app.set("maxAge", "0");
-    app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
+});
+app.configure("production", function () {
+    app.set("maxAge", "2h");
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     app.start(mongo, access, function () {
+        //加载静态资源
         app.configure("development|production", function () {
             app.webapp.use('/', app.express.static('./test/web', {
                 maxAge: app.get("maxAge")
@@ -25,7 +31,7 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
             }));
         });
     }, function () {
-
+        //加载WEB接口
     });
 });
 app.printInfo(true, true);

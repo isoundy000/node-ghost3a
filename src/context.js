@@ -92,6 +92,8 @@ Context.prototype.getIP = function (req) {
     } else {
         ip = 'empty.ip';
     }
+    ip = ip.indexOf(',') > 0 ? ip.split(',')[0] : ip;
+    ip = ip.trim() || '127.0.0.1';
     return ip;
 };
 Context.prototype.getMd5 = function (strData) {
@@ -194,7 +196,7 @@ Context.prototype.registerApi = function () {
             } else {
                 self.access.auth(store, method, req, function () {
                     next();
-                }, function (command) {
+                }, function () {
                     res.json({
                         success: false,
                         message: '没有权限',
@@ -239,7 +241,7 @@ Context.prototype.registerApi = function () {
                     res.json({
                         success: false,
                         message: error.toString(),
-                        command: 501
+                        command: 400
                     });
                 }
             } else {

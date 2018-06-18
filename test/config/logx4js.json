@@ -22,6 +22,16 @@
       },
       "backups": 5,
       "category": "mongo"
+    },
+    {
+      "type": "file",
+      "filename": "${opts:base}/logs/wsocket-${opts:type}-${opts:port}.log",
+      "maxLogSize": 8388608,
+      "layout": {
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "mongo"
     }
   ],
   "levels": {
