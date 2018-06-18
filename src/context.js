@@ -39,8 +39,8 @@ Context.prototype.loadLog4js = function () {
     logxx4j.configure(logcfg);
     return logcfg;
 };
-Context.prototype.loadConfig = function (key, path, encode) {
-    this.set(key, JSON.parse(fs.readFileSync(path, encode || 'utf8'))[this.env]);
+Context.prototype.loadConfig = function (key, path) {
+    this.set(key, JSON.parse(fs.readFileSync(path, 'utf8'))[this.env]);
 };
 Context.prototype.configure = function (env, type, callback) {
     if (typeof type === "function") {
@@ -106,8 +106,8 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     this.express = require('express');
     this.webapp = this.express();
     this.server = config.ssl ? require('https').createServer({
-        key: fs.readFileSync(config.ssl.key),
-        cert: fs.readFileSync(config.ssl.cert)
+        key: fs.readFileSync(config.ssl.key, 'utf8'),
+        cert: fs.readFileSync(config.ssl.cert, 'utf8')
     }, this.webapp) : require('http').createServer(this.webapp);
     this.mongo = mongo;
     this.access = access;
