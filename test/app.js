@@ -9,7 +9,7 @@ app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
 app.configure("development|production", function () {
     app.set("serverConfig", {
         nameSpace: '/test',
-        useGzip: true,
+        gzip: {},
         cookieSecret: '1234567890'
     });
 });

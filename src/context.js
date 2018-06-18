@@ -15,7 +15,7 @@ var Context = function (base, env, port, type) {
         serverConfig: {
             nameSpace: "/default",
             ssl: false,
-            useGzip: false,
+            gzip: false,
             cookieSecret: false,
             uploadDir: this.base + '/files',
             uploadSize: 1024 * 1024 * 10 //字节
@@ -107,15 +107,19 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     var config = this.config.serverConfig;
     this.express = require('express');
     this.webapp = this.express();
-    this.server = config.ssl ? require('https').createServer({
-        key: fs.readFileSync(config.ssl.key, 'utf8'),
-        cert: fs.readFileSync(config.ssl.cert, 'utf8')
-    }, this.webapp) : require('http').createServer(this.webapp);
+    if (config.ssl) {
+        this.server = require('https').createServer({
+            key: fs.readFileSync(config.ssl.key, 'utf8'),
+            cert: fs.readFileSync(config.ssl.cert, 'utf8')
+        }, this.webapp);
+    } else {
+        this.server = require('http').createServer(this.webapp);
+    }
     this.mongo = mongo;
     this.access = access;
     this.registerUpload();
-    if (config.useGzip) {
-        this.webapp.use(compress());//放在最前面,这是中间件的顺序关系，这样可以保证所有内容都经过压缩（框架底层已经过滤掉图片）
+    if (config.gzip) {
+        this.webapp.use(compress(config.gzip));//放在最前面,这是中间件的顺序关系，这样可以保证所有内容都经过压缩（框架底层已经过滤掉图片）
     }
     if (config.cookieSecret) {
         this.webapp.use(cookieParser(config.cookieSecret));//若需要使用签名，需要指定一个secret字符串
