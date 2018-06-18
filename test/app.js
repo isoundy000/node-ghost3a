@@ -11,7 +11,7 @@ app.configure("development|production", function () {
         cookieSecret: '1234567890'
     });
     app.set("maxAge", "0");
-    app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
+    app.loadConfig('mongoConfig', 'mongo.json');
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     app.start(mongo, access, function () {
@@ -27,7 +27,7 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
 
     });
 });
-app.printInfo(false, false);
+app.printInfo(true, false);
 /**
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃
  */
