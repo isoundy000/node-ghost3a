@@ -4,36 +4,36 @@ var lineDebug = false;
 var Logx4js = function (category, filename, serverTag) {
     this.logger = log4js.getLogger(category);
     this.category = category;
-    this.filename = filename ? "[" + filename + "] " : "";
-    this.serverTag = serverTag ? "[" + serverTag + "] " : "";
+    this.filename = filename ? '[' + filename + '] ' : '';
+    this.serverTag = serverTag ? '[' + serverTag + '] ' : '';
 };
 Logx4js.prototype.trace = function () {
-    arguments[0] = this.getPrefix("trace") + arguments[0];
+    arguments[0] = this.getPrefix('trace') + arguments[0];
     this.logger.trace.apply(this.logger, arguments);
 };
 Logx4js.prototype.debug = function () {
-    arguments[0] = this.getPrefix("debug") + arguments[0];
+    arguments[0] = this.getPrefix('debug') + arguments[0];
     this.logger.debug.apply(this.logger, arguments);
 };
 Logx4js.prototype.info = function () {
-    arguments[0] = this.getPrefix("info") + arguments[0];
+    arguments[0] = this.getPrefix('info') + arguments[0];
     this.logger.info.apply(this.logger, arguments);
 
 };
 Logx4js.prototype.warn = function () {
-    arguments[0] = this.getPrefix("warn") + arguments[0];
+    arguments[0] = this.getPrefix('warn') + arguments[0];
     this.logger.warn.apply(this.logger, arguments);
 };
 Logx4js.prototype.error = function () {
-    arguments[0] = this.getPrefix("error") + arguments[0];
+    arguments[0] = this.getPrefix('error') + arguments[0];
     this.logger.error.apply(this.logger, arguments);
 };
 Logx4js.prototype.fatal = function () {
-    arguments[0] = this.getPrefix("fatal") + arguments[0];
+    arguments[0] = this.getPrefix('fatal') + arguments[0];
     this.logger.fatal.apply(this.logger, arguments);
 };
 Logx4js.prototype.getPrefix = function (level) {
-    return colorize((lineDebug ? (getLine() + ": ") : "") + this.filename, colours[level]) + this.serverTag;
+    return colorize((lineDebug ? (getLine() + ': ') : '') + this.filename, colours[level]) + this.serverTag;
 };
 /**
  * 输出颜色相关
@@ -58,14 +58,14 @@ var styles = {
 };
 
 var colours = {
-    'all': "grey",
-    'trace': "blue",
-    'debug': "cyan",
-    'info': "green",
-    'warn': "yellow",
-    'error': "red",
-    'fatal': "magenta",
-    'off': "grey"
+    'all': 'grey',
+    'trace': 'blue',
+    'debug': 'cyan',
+    'info': 'green',
+    'warn': 'yellow',
+    'error': 'red',
+    'fatal': 'magenta',
+    'off': 'grey'
 };
 
 function getLine() {

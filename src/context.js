@@ -3,6 +3,7 @@ var path = require('path'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     multer = require('multer'),
+    websocket = require('ws'),
     fs = require('fs'),
     crypto = require('crypto'),
     logx4js = require('./logx4js');
@@ -13,9 +14,10 @@ var Context = function (base, env, port, type) {
     this.type = type;
     this.config = {
         serverConfig: {
-            nameSpace: "/default",
             ssl: false,
+            wss: false,
             gzip: false,
+            apiRoot: '/default',
             cookieSecret: false,
             uploadDir: this.base + '/files',
             uploadSize: 1024 * 1024 * 10 //字节
@@ -25,32 +27,32 @@ var Context = function (base, env, port, type) {
     this.logger = null;
     this.express = null;
     this.webapp = null;
-    this.server = null;
+    this.wssapp = null;
     this.mongo = null;
     this.access = null;
     this.upload = null;
 };
 Context.prototype.loadLogx4js = function (filepath) {
     var logStr = fs.readFileSync(filepath, 'utf8');
-    logStr = logStr.replace(new RegExp("\\$\\{opts\\:base\\}", 'gm'), this.getBase());
-    logStr = logStr.replace(new RegExp("\\$\\{opts\\:type\\}", 'gm'), this.type);
-    logStr = logStr.replace(new RegExp("\\$\\{opts\\:port\\}", 'gm'), this.port);
+    logStr = logStr.replace(new RegExp('\\$\\{opts\\:base\\}', 'gm'), this.getBase());
+    logStr = logStr.replace(new RegExp('\\$\\{opts\\:type\\}', 'gm'), this.type);
+    logStr = logStr.replace(new RegExp('\\$\\{opts\\:port\\}', 'gm'), this.port);
     this.logcfg = JSON.parse(logStr);
     logx4js.configure(this.logcfg);
-    this.logger = this.getLogger("context", __filename);
+    this.logger = this.getLogger('context', __filename);
 };
 Context.prototype.loadConfig = function (key, filepath) {
     this.set(key, JSON.parse(fs.readFileSync(filepath, 'utf8'))[this.env]);
 };
 Context.prototype.configure = function (env, type, callback) {
-    if (typeof type === "function") {
+    if (typeof type === 'function') {
         callback = type;
         type = null;
     }
-    var envArr = env.split("|");
+    var envArr = env.split('|');
     if (envArr.indexOf(this.env) >= 0) {
         if (type) {
-            var typeArr = type.split("|");
+            var typeArr = type.split('|');
             if (typeArr.indexOf(this.type) >= 0) {
                 callback();
             }
@@ -60,19 +62,19 @@ Context.prototype.configure = function (env, type, callback) {
     }
 };
 Context.prototype.getLogger = function (category, filename) {
-    return logx4js.getLogger(category, filename, this.type + "-" + this.port);
+    return logx4js.getLogger(category, filename, this.type + '-' + this.port);
 };
 Context.prototype.getBase = function () {
     return this.base;
 };
 Context.prototype.set = function (key, value) {
-    if (key === "serverConfig") {
-        if (typeof value === "object") {
+    if (key === 'serverConfig') {
+        if (typeof value === 'object') {
             for (var k in value) {
                 this.config.serverConfig[k] = value[k];
             }
         } else {
-            this.logger.error("value of serverConfig must be an object");
+            this.logger.error('value of serverConfig must be an object');
         }
     } else {
         this.config[key] = value;
@@ -107,19 +109,16 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     var config = this.config.serverConfig;
     this.express = require('express');
     this.webapp = this.express();
-    if (config.ssl) {
-        this.server = require('https').createServer({
-            key: fs.readFileSync(config.ssl.key, 'utf8'),
-            cert: fs.readFileSync(config.ssl.cert, 'utf8')
-        }, this.webapp);
-    } else {
-        this.server = require('http').createServer(this.webapp);
-    }
+    var server = config.ssl ? require('https').createServer({
+        key: fs.readFileSync(config.ssl.key, 'utf8'),
+        cert: fs.readFileSync(config.ssl.cert, 'utf8')
+    }, this.webapp) : require('http').createServer(this.webapp);
+    this.wssapp = config.wss ? new websocket.Server({server: server}) : null;
     this.mongo = mongo;
     this.access = access;
     this.registerUpload();
     if (config.gzip) {
-        this.webapp.use(compress(config.gzip));//放在最前面,这是中间件的顺序关系，这样可以保证所有内容都经过压缩（框架底层已经过滤掉图片）
+        this.webapp.use(compress(typeof config.gzip === 'object' ? config.gzip : {}));//放在最前面可以保证后面的所有内容都经过压缩
     }
     if (config.cookieSecret) {
         this.webapp.use(cookieParser(config.cookieSecret));//若需要使用签名，需要指定一个secret字符串
@@ -137,8 +136,8 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     if (onRegisterApi) {
         onRegisterApi.call(this);//加载自定义接口
     }
-    this.server.listen(this.port, function () {
-        logger.info(self.env, self.type, 'server', self.port, 'is running...');
+    server.listen(this.port, function () {
+        logger.info('server', self.port, 'is listening...');
     });
 };
 Context.prototype.registerUpload = function () {
@@ -151,7 +150,7 @@ Context.prototype.registerUpload = function () {
                 date = new Date(),
                 folder = config.uploadDir + '/' + store + '/' + date.getFullYear() + '_' + (date.getMonth() + 1) + '_' + date.getDate() + '/';
             self.makeDirs(folder, null, function (dirpath) {
-                logger.debug("makeDirs after:", dirpath);
+                logger.debug('makeDirs after:', dirpath);
                 callback(null, dirpath);
             });
         },
@@ -181,7 +180,7 @@ Context.prototype.registerApi = function () {
     var self = this;
     var logger = this.logger;
     var config = this.config.serverConfig;
-    this.webapp.all(config.nameSpace + '/:store/:method', function (req, res, next) {
+    this.webapp.all(config.apiRoot + '/:store/:method', function (req, res, next) {
         logger.debug('req.params -> \n', req.params);
         logger.debug('req.body -> \n', req.body);
         logger.debug('req.query -> \n', req.query);
@@ -216,14 +215,14 @@ Context.prototype.registerApi = function () {
             });
         }
     });
-    this.webapp.all(config.nameSpace + '/:store/upload', function (req, res) {
+    this.webapp.all(config.apiRoot + '/:store/upload', function (req, res) {
         var store = req.params.store;
         self.upload.single('file')(req, res, function (error) {
             if (req.file) {
                 logger.debug('req.file -> \n', req.file);
                 if (!error) {
                     var data = req.body;
-                    data._path = req.file.path.replace(new RegExp("\\\\", 'gm'), '/').replace(config.uploadDir, '');//windows系统下分隔符为'\'
+                    data._path = req.file.path.replace(new RegExp('\\\\', 'gm'), '/').replace(config.uploadDir, '');//windows系统下分隔符为'\'
                     data._size = req.file.size;
                     data._mimetype = req.file.mimetype;
                     data._orgname = req.file.originalname;
@@ -262,12 +261,12 @@ Context.prototype.makeDirs = function (dirpath, mode, callback) {
     var self = this;
     var logger = this.logger;
     fs.exists(dirpath, function (exists) {
-        logger.debug("makeDirs check:", dirpath, exists);
+        logger.debug('makeDirs check:', dirpath, exists);
         if (exists) {
             callback(dirpath);
         } else {
             self.makeDirs(path.dirname(dirpath), mode, function (parentPath) {
-                logger.debug("makeDirs after:", parentPath);
+                logger.debug('makeDirs after:', parentPath);
                 fs.mkdir(dirpath, mode, function () {
                     callback(dirpath);
                 });
