@@ -1,6 +1,6 @@
 {
   "name": "node-ghost3a",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": false,
   "description": "web服务器框架、websocket游戏服务器框架",
   "main": "ghost3a.js",

@@ -16,11 +16,11 @@ var Context = function (base, env, port, type) {
         serverConfig: {
             ssl: false,
             wss: false,
-            gzip: false,
-            apiRoot: '/default',
-            cookieSecret: false,
-            uploadDir: this.base + '/files',
-            uploadSize: 1024 * 1024 * 10 //字节
+            webGzip: false,
+            webApiRoot: '/default',
+            webCookieKey: false,
+            webUploadDir: this.base + '/files',
+            webUploadMax: 1024 * 1024 * 10 //byte
         }
     };
     this.logcfg = null;
@@ -113,15 +113,24 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
         key: fs.readFileSync(config.ssl.key, 'utf8'),
         cert: fs.readFileSync(config.ssl.cert, 'utf8')
     }, this.webapp) : require('http').createServer(this.webapp);
-    this.wssapp = config.wss ? new websocket.Server({server: server}) : null;
+    if (config.wss) {
+        var wsscfg = {};
+        if (typeof config.wss === 'object') {
+            for (var key in config.wss) {
+                wsscfg[key] = config.wss[key];
+            }
+        }
+        wsscfg.server = server;
+        this.wssapp = new websocket.Server(wsscfg);
+    }
     this.mongo = mongo;
     this.access = access;
     this.registerUpload();
-    if (config.gzip) {
-        this.webapp.use(compress(typeof config.gzip === 'object' ? config.gzip : {}));//放在最前面可以保证后面的所有内容都经过压缩
+    if (config.webGzip) {
+        this.webapp.use(compress(typeof config.webGzip === 'object' ? config.webGzip : {}));//放在最前面可以保证后面的所有内容都经过压缩
     }
-    if (config.cookieSecret) {
-        this.webapp.use(cookieParser(config.cookieSecret));//若需要使用签名，需要指定一个secret字符串
+    if (config.webCookieKey) {
+        this.webapp.use(cookieParser(typeof config.webCookieKey === 'string' ? config.webCookieKey : mongo.genID()));//若使用签名则传入或生成一个key字符串
     }
     this.webapp.use(bodyParser.json());//用于解析application/json
     this.webapp.use(bodyParser.urlencoded({extended: true}));//用户解析application/x-www-form-urlencoded
@@ -148,7 +157,7 @@ Context.prototype.registerUpload = function () {
         destination: function (req, file, callback) {
             var store = req.params.store,
                 date = new Date(),
-                folder = config.uploadDir + '/' + store + '/' + date.getFullYear() + '_' + (date.getMonth() + 1) + '_' + date.getDate() + '/';
+                folder = config.webUploadDir + '/' + store + '/' + date.getFullYear() + '_' + (date.getMonth() + 1) + '_' + date.getDate() + '/';
             self.makeDirs(folder, null, function (dirpath) {
                 logger.debug('makeDirs after:', dirpath);
                 callback(null, dirpath);
@@ -172,7 +181,7 @@ Context.prototype.registerUpload = function () {
     this.upload = multer({
         storage: storage,
         limits: {
-            fileSize: config.uploadSize
+            fileSize: config.webUploadMax
         }
     });
 };
@@ -180,7 +189,7 @@ Context.prototype.registerApi = function () {
     var self = this;
     var logger = this.logger;
     var config = this.config.serverConfig;
-    this.webapp.all(config.apiRoot + '/:store/:method', function (req, res, next) {
+    this.webapp.all(config.webApiRoot + '/:store/:method', function (req, res, next) {
         logger.debug('req.params -> \n', req.params);
         logger.debug('req.body -> \n', req.body);
         logger.debug('req.query -> \n', req.query);
@@ -215,14 +224,14 @@ Context.prototype.registerApi = function () {
             });
         }
     });
-    this.webapp.all(config.apiRoot + '/:store/upload', function (req, res) {
+    this.webapp.all(config.webApiRoot + '/:store/upload', function (req, res) {
         var store = req.params.store;
         self.upload.single('file')(req, res, function (error) {
             if (req.file) {
                 logger.debug('req.file -> \n', req.file);
                 if (!error) {
                     var data = req.body;
-                    data._path = req.file.path.replace(new RegExp('\\\\', 'gm'), '/').replace(config.uploadDir, '');//windows系统下分隔符为'\'
+                    data._path = req.file.path.replace(new RegExp('\\\\', 'gm'), '/').replace(config.webUploadDir, '');//windows系统下分隔符为'\'
                     data._size = req.file.size;
                     data._mimetype = req.file.mimetype;
                     data._orgname = req.file.originalname;

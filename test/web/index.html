@@ -11,17 +11,19 @@
     <input type="text" name="desc"/>
     <button type="submit">提交</button>
 </form>
-<button onclick="testWss()">wss连接</button>
+<button onclick="openWss()">wss连接</button>
+<button onclick="sendWss()">wss发送</button>
+<button onclick="closeWss()">wss关闭</button>
 <script>
-    function testWss() {
-        var ws = new WebSocket("ws://localhost:8080/");
+    var ws;
+
+    function openWss() {
+        ws = new WebSocket("ws://localhost:8080/");
         ws.onopen = function (event) {
             console.log("onopen ...");
-            ws.send("Hello WebSockets!");
         };
         ws.onmessage = function (event) {
             console.log("onmessage: " + event.data);
-            ws.close();
         };
         ws.onclose = function (event) {
             console.log("onclose.");
@@ -29,6 +31,15 @@
         ws.onerror = function (event) {
             console.log(" onerror.");
         }
+        console.log(ws);
+    }
+
+    function sendWss() {
+        ws.send("几点了？");
+    }
+
+    function closeWss() {
+        ws.close();
     }
 </script>
 </body>

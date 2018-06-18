@@ -9,9 +9,9 @@ app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
 app.configure('development|production', function () {
     app.set('serverConfig', {
         wss: true,
-        gzip: true,
-        apiRoot: '/test',
-        cookieSecret: '1234567890'
+        webGzip: true,
+        webApiRoot: '/test',
+        webCookieKey: '1234567890'
     });
 });
 app.configure('development', function () {
@@ -37,11 +37,14 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
             app.logger.info('on connection');
             socket.on('message', function (message) {
                 app.logger.info('on message: %s', message);
+                socket.send('时间: ' + new Date() + ', md5 = ' + app.getMd5(message));
             });
             socket.on('close', function () {
                 app.logger.info('on close');
             });
-            socket.send('something');
+            socket.on('error', function (error) {
+                app.logger.info('on error', error);
+            });
         });
     });
 });
