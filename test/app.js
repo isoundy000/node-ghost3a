@@ -4,7 +4,7 @@ var ghost3a = require("../ghost3a"),
  * 初始化
  */
 var app = ghost3a.createWebApp();
-app.loadLogx4js(app.getBase() + '/config/log4js.json');
+app.loadLogx4js(app.getBase() + '/config/logx4js.json');
 app.configure("development|production", function () {
     app.set("serverConfig", {
         nameSpace: '/test',
@@ -28,7 +28,7 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
 
     });
 });
-app.printInfo(true, false);
+app.printInfo(true, true);
 /**
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃
  */
