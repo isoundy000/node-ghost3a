@@ -5,7 +5,7 @@ var path = require('path'),
     multer = require('multer'),
     fs = require('fs'),
     crypto = require('crypto'),
-    logxx4j = require('./logxx4j');
+    logx4js = require('./logx4js');
 var Context = function (base, env, port, type) {
     this.base = base;
     this.env = env;
@@ -21,8 +21,8 @@ var Context = function (base, env, port, type) {
             uploadSize: 1024 * 1024 * 10 //字节
         }
     };
-    this.logcfg = this.loadLog4js();
-    this.logger = this.getLogger("context", __filename);
+    this.logcfg = null;
+    this.logger = null;
     this.express = null;
     this.webapp = null;
     this.server = null;
@@ -30,17 +30,17 @@ var Context = function (base, env, port, type) {
     this.access = null;
     this.upload = null;
 };
-Context.prototype.loadLog4js = function () {
-    var logStr = fs.readFileSync(this.getBase() + '/config/log4js.json', 'utf8');
+Context.prototype.loadLogx4js = function (filepath) {
+    var logStr = fs.readFileSync(filepath, 'utf8');
     logStr = logStr.replace(new RegExp("\\$\\{opts\\:base\\}", 'gm'), this.getBase());
     logStr = logStr.replace(new RegExp("\\$\\{opts\\:type\\}", 'gm'), this.type);
     logStr = logStr.replace(new RegExp("\\$\\{opts\\:port\\}", 'gm'), this.port);
-    var logcfg = JSON.parse(logStr);
-    logxx4j.configure(logcfg);
-    return logcfg;
+    this.logcfg = JSON.parse(logStr);
+    logx4js.configure(this.logcfg);
+    this.logger = this.getLogger("context", __filename);
 };
 Context.prototype.loadConfig = function (key, filepath) {
-    this.set(key, JSON.parse(fs.readFileSync(this.getBase() + '/config/' + filepath, 'utf8'))[this.env]);
+    this.set(key, JSON.parse(fs.readFileSync(filepath, 'utf8'))[this.env]);
 };
 Context.prototype.configure = function (env, type, callback) {
     if (typeof type === "function") {
@@ -60,7 +60,7 @@ Context.prototype.configure = function (env, type, callback) {
     }
 };
 Context.prototype.getLogger = function (category, filename) {
-    return logxx4j.getLogger(category, filename, this.type + "-" + this.port);
+    return logx4js.getLogger(category, filename, this.type + "-" + this.port);
 };
 Context.prototype.getBase = function () {
     return this.base;
@@ -106,8 +106,8 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     this.express = require('express');
     this.webapp = this.express();
     this.server = config.ssl ? require('https').createServer({
-        key: fs.readFileSync(this.getBase() + '/config/' + config.ssl.key, 'utf8'),
-        cert: fs.readFileSync(this.getBase() + '/config/' + config.ssl.cert, 'utf8')
+        key: fs.readFileSync(config.ssl.key, 'utf8'),
+        cert: fs.readFileSync(config.ssl.cert, 'utf8')
     }, this.webapp) : require('http').createServer(this.webapp);
     this.mongo = mongo;
     this.access = access;
@@ -281,7 +281,7 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
     }
 
     if (printLogCfg) {
-        this.logger.info('logxx4j config ->\n', JSON.stringify(this.logcfg, null, 2));
+        this.logger.info('logx4js config ->\n', JSON.stringify(this.logcfg, null, 2));
     }
 };
 /**

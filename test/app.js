@@ -4,6 +4,7 @@ var ghost3a = require("../ghost3a"),
  * 初始化
  */
 var app = ghost3a.createWebApp();
+app.loadLogx4js(app.getBase() + '/config/log4js.json');
 app.configure("development|production", function () {
     app.set("serverConfig", {
         nameSpace: '/test',
@@ -11,7 +12,7 @@ app.configure("development|production", function () {
         cookieSecret: '1234567890'
     });
     app.set("maxAge", "0");
-    app.loadConfig('mongoConfig', 'mongo.json');
+    app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     app.start(mongo, access, function () {
