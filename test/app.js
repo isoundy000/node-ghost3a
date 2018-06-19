@@ -21,6 +21,7 @@ app.configure('production', function () {
     app.set('maxAge', '2h');
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
+    mongo.insertOneDoc('test', {time: Date.now()});
     app.start(mongo, access, function () {
         //加载静态资源
         app.configure('development|production', function () {

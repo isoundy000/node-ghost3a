@@ -14,23 +14,11 @@ Mongo.prototype.connect = function (name, callback) {
     if (self.db) {
         self.onConnected(name, callback);
     } else {
-        self.mongodb.MongoClient.connect(self.cfg.url, self.cfg.opts || {}, function (error, db) {
+        self.mongodb.MongoClient.connect(self.cfg.url, self.cfg.opts || {}, function (error, client) {
             if (!error) {
-                if (self.cfg.user && self.cfg.pwd) {
-                    db.authenticate(self.cfg.user, self.cfg.pwd, function (error, result) {
-                        if (!error) {
-                            self.logger.info('mongo authenticate success. ');
-                            self.db = db;
-                            self.onConnected(name, callback);
-                        } else {
-                            self.logger.error('mongo connect error. ', error);
-                        }
-                    });
-                } else {
-                    self.logger.info('mongo connect success. ');
-                    self.db = db;
-                    self.onConnected(name, callback);
-                }
+                self.logger.info('mongo connect success. ');
+                self.db = client.db(self.cfg.db);
+                self.onConnected(name, callback);
             } else {
                 self.logger.error('mongo connect error. ', error);
             }
