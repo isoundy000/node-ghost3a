@@ -64,7 +64,14 @@ Context.prototype.configure = function (env, name, callback) {
     }
 };
 Context.prototype.getLogger = function (category, filepath) {
-    return logx4js.getLogger(category, filepath, this.name + '-' + this.pmid);
+    return logx4js.getLogger(category, {
+        file: filepath,
+        base: this.base,
+        env: this.env,
+        name: this.name,
+        port: this.port,
+        pmid: this.pmid
+    });
 };
 Context.prototype.getBase = function () {
     return this.base;
@@ -285,7 +292,8 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
         base: this.base,
         env: this.env,
         name: this.name,
-        port: this.port
+        port: this.port,
+        pmid: this.pmid
     }, null, 2));
     if (printConfig) {
         this.logger.info('context config ->\n', JSON.stringify(this.config, null, 2));

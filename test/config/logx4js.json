@@ -1,7 +1,11 @@
 {
   "appenders": {
     "stdout": {
-      "type": "stdout"
+      "type": "stdout",
+      "layout": {
+        "type": "pattern",
+        "pattern": "%[[%d] [%p] %c - %X{file}:%X{line} [%X{name}-%X{pmid}]%] %m"
+      }
     },
     "context": {
       "type": "file",
@@ -44,6 +48,5 @@
       "level": "debug"
     }
   },
-  "lineDebug": true,
-  "fileDebug": true
+  "lineDebug": true
 }
