@@ -1,10 +1,9 @@
-var path = require('path');
 var ghost3a = require('../ghost3a');
 var access = require('./access');
 /**
  * 初始化
  */
-var app = ghost3a.context.create(path.dirname(process.argv[1]), process.argv[2], process.argv[3], process.argv[4]);
+var app = ghost3a.context.create(process.argv[2], process.argv[3], process.argv[4]);
 app.loadLogx4js(app.getBase() + '/config/logx4js.json');//最先调用以便输出后续步骤的日志
 app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
 app.configure('development|production', function () {

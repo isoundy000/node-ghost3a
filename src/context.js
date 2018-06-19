@@ -7,8 +7,8 @@ var websocket = require('ws');
 var fs = require('fs');
 var crypto = require('crypto');
 var logx4js = require('./logx4js');
-var Context = function (base, env, port, type) {
-    this.base = base;
+var Context = function (env, port, type) {
+    this.base = path.dirname(process.argv[1]);
     this.env = env;
     this.port = port;
     this.type = type;
@@ -284,7 +284,7 @@ Context.prototype.makeDirs = function (dirpath, mode, callback) {
     });
 };
 Context.prototype.printInfo = function (printConfig, printLogCfg) {
-    this.logger.info('command info ->\n', JSON.stringify({
+    this.logger.info('server info ->\n', JSON.stringify({
         base: this.base,
         env: this.env,
         port: this.port,
@@ -301,14 +301,13 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
 
 module.exports = {
     /**
-     * @param base 服务器根目录
      * @param env 服务器环境类型（如：development、production等自由定义）
      * @param port 服务器端口号
      * @param type 服务器种类（如：master、slave等自由定义）
      * @returns {Context} 类实例
      */
-    create: function (base, env, port, type) {
-        return new Context(base, env, port, type);
+    create: function (env, port, type) {
+        return new Context(env, port, type);
     }
 };
 
