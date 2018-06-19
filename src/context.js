@@ -85,18 +85,13 @@ Context.prototype.set = function (key, value) {
 Context.prototype.get = function (key) {
     return this.config[key];
 };
-Context.prototype.getIP = function (req) {
+Context.prototype.getIPV4 = function (req) {
     var ip = req.headers['x-forwarded-for'] || req.ip;
-    if ('::1' === ip) {
+    if (!ip || '::1' === ip) {
         ip = '127.0.0.1';
     }
-    if (ip) {
-        ip = ip.replace(new RegExp(':', 'gm'), '');
-        ip = ip.replace(new RegExp('f', 'gm'), '');
-    } else {
-        ip = 'empty.ip';
-    }
-    ip = ip.indexOf(',') > 0 ? ip.split(',')[0] : ip;
+    ip = ip.replace(/[:f]/gm, '');
+    ip = ip.split(/\s*,\s*/)[0];
     ip = ip.trim() || '127.0.0.1';
     return ip;
 };
@@ -137,7 +132,7 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
     this.webapp.use(bodyParser.json());//用于解析application/json
     this.webapp.use(bodyParser.urlencoded({extended: true}));//用户解析application/x-www-form-urlencoded
     this.webapp.all('/*', function (req, res, next) {
-        logger.info(self.getIP(req), req.originalUrl);//打印出所有请求路径
+        logger.info(self.getIPV4(req), req.originalUrl);//打印出所有请求路径
         next();
     });
     if (onLoadModule) {
