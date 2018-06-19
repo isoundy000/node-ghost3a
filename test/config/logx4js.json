@@ -5,7 +5,7 @@
     },
     {
       "type": "file",
-      "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}.log",
+      "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}-${opts:pmid}.log",
       "maxLogSize": 8388608,
       "layout": {
         "type": "basic"
@@ -15,7 +15,7 @@
     },
     {
       "type": "file",
-      "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}.log",
+      "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}-${opts:pmid}.log",
       "maxLogSize": 8388608,
       "layout": {
         "type": "basic"

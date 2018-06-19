@@ -7,11 +7,12 @@ var websocket = require('ws');
 var fs = require('fs');
 var crypto = require('crypto');
 var logx4js = require('./logx4js');
-var Context = function (base, env, name, port) {
+var Context = function (base, env, name, port, pmid) {
     this.base = path.dirname(base);
     this.env = env;
     this.name = name;
     this.port = port;
+    this.pmid = pmid;
     this.config = {
         serverConfig: {
             ssl: false,
@@ -37,6 +38,7 @@ Context.prototype.loadLogx4js = function (filepath) {
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:base\\}', 'gm'), this.getBase());
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:name\\}', 'gm'), this.name);
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:port\\}', 'gm'), this.port);
+    logStr = logStr.replace(new RegExp('\\$\\{opts\\:pmid\\}', 'gm'), this.pmid);
     this.logcfg = JSON.parse(logStr);
     logx4js.configure(this.logcfg);
     this.logger = this.getLogger('context', __filename);
@@ -62,7 +64,7 @@ Context.prototype.configure = function (env, name, callback) {
     }
 };
 Context.prototype.getLogger = function (category, filepath) {
-    return logx4js.getLogger(category, filepath, this.name);
+    return logx4js.getLogger(category, filepath, this.name + '-' + this.pmid);
 };
 Context.prototype.getBase = function () {
     return this.base;
@@ -305,10 +307,10 @@ module.exports = {
      * @param env 服务器环境类型（如：development、production等自由定义）
      * @param name 服务器名称（如：master、slave等自由定义）
      * @param port 服务器端口号
+     * @param pmid 服务器ID
      * @returns {Context} 类实例
      */
-    create: function (base, env, name, port) {
-        return new Context(base, env, name, port);
+    create: function (base, env, name, port, pmid) {
+        return new Context(base, env, name, port, pmid);
     }
 };
-
