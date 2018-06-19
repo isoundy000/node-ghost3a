@@ -7,11 +7,11 @@ var websocket = require('ws');
 var fs = require('fs');
 var crypto = require('crypto');
 var logx4js = require('./logx4js');
-var Context = function (base, env, port, type) {
+var Context = function (base, env, name, port) {
     this.base = path.dirname(base);
     this.env = env;
+    this.name = name;
     this.port = port;
-    this.type = type;
     this.config = {
         serverConfig: {
             ssl: false,
@@ -35,7 +35,7 @@ var Context = function (base, env, port, type) {
 Context.prototype.loadLogx4js = function (filepath) {
     var logStr = fs.readFileSync(filepath, 'utf8');
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:base\\}', 'gm'), this.getBase());
-    logStr = logStr.replace(new RegExp('\\$\\{opts\\:type\\}', 'gm'), this.type);
+    logStr = logStr.replace(new RegExp('\\$\\{opts\\:name\\}', 'gm'), this.name);
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:port\\}', 'gm'), this.port);
     this.logcfg = JSON.parse(logStr);
     logx4js.configure(this.logcfg);
@@ -44,16 +44,16 @@ Context.prototype.loadLogx4js = function (filepath) {
 Context.prototype.loadConfig = function (key, filepath) {
     this.set(key, JSON.parse(fs.readFileSync(filepath, 'utf8'))[this.env]);
 };
-Context.prototype.configure = function (env, type, callback) {
-    if (typeof type === 'function') {
-        callback = type;
-        type = null;
+Context.prototype.configure = function (env, name, callback) {
+    if (typeof name === 'function') {
+        callback = name;
+        name = null;
     }
     var envArr = env.split('|');
     if (envArr.indexOf(this.env) >= 0) {
-        if (type) {
-            var typeArr = type.split('|');
-            if (typeArr.indexOf(this.type) >= 0) {
+        if (name) {
+            var typeArr = name.split('|');
+            if (typeArr.indexOf(this.name) >= 0) {
                 callback();
             }
         } else {
@@ -61,8 +61,8 @@ Context.prototype.configure = function (env, type, callback) {
         }
     }
 };
-Context.prototype.getLogger = function (category, filename) {
-    return logx4js.getLogger(category, filename, this.type + '-' + this.port);
+Context.prototype.getLogger = function (category, filepath) {
+    return logx4js.getLogger(category, filepath, this.name);
 };
 Context.prototype.getBase = function () {
     return this.base;
@@ -287,8 +287,8 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
     this.logger.info('server info ->\n', JSON.stringify({
         base: this.base,
         env: this.env,
-        port: this.port,
-        type: this.type
+        name: this.name,
+        port: this.port
     }, null, 2));
     if (printConfig) {
         this.logger.info('context config ->\n', JSON.stringify(this.config, null, 2));
@@ -301,13 +301,14 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
 
 module.exports = {
     /**
+     * @param base 服务器入口文件路径（通过解析该值得到来到根目录）
      * @param env 服务器环境类型（如：development、production等自由定义）
+     * @param name 服务器名称（如：master、slave等自由定义）
      * @param port 服务器端口号
-     * @param type 服务器种类（如：master、slave等自由定义）
      * @returns {Context} 类实例
      */
-    create: function (base, env, port, type) {
-        return new Context(base, env, port, type);
+    create: function (base, env, name, port) {
+        return new Context(base, env, name, port);
     }
 };
 

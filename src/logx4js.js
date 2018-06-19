@@ -29,10 +29,10 @@ var colours = {
     'fatal': 'magenta',
     'off': 'grey'
 };
-var Logx4js = function (category, filename, serverTag) {
+var Logx4js = function (category, filepath, serverTag) {
     this.logger = log4js.getLogger(category);
     this.category = category;
-    this.filename = filename ? '[' + filename + '] ' : '';
+    this.filepath = filepath ? '[' + filepath + '] ' : '';
     this.serverTag = serverTag ? '[' + serverTag + '] ' : '';
 };
 Logx4js.prototype.trace = function () {
@@ -61,7 +61,7 @@ Logx4js.prototype.fatal = function () {
     this.logger.fatal.apply(this.logger, arguments);
 };
 Logx4js.prototype.getPrefix = function (level) {
-    return colorize((lineDebug ? (getLine() + ': ') : '') + this.filename, colours[level]) + this.serverTag;
+    return colorize((lineDebug ? (getLine() + ': ') : '') + this.filepath, colours[level]) + this.serverTag;
 };
 
 function getLine() {
@@ -91,11 +91,11 @@ module.exports = {
     },
     /**
      * @param category 日志分类
-     * @param filename 调用层文件名
+     * @param filepath 调用层文件名
      * @param serverTag 服务器标签
      * @returns {Logx4js} 类实例
      */
-    getLogger: function (category, filename, serverTag) {
-        return new Logx4js(category, filename, serverTag);
+    getLogger: function (category, filepath, serverTag) {
+        return new Logx4js(category, filepath, serverTag);
     }
 };
