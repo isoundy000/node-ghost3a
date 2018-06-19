@@ -1,34 +1,49 @@
 {
-  "appenders": [
-    {
-      "type": "console"
+  "appenders": {
+    "stdout": {
+      "type": "stdout"
     },
-    {
+    "context": {
       "type": "file",
       "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}-${opts:pmid}.log",
       "maxLogSize": 8388608,
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "context"
+      "backups": 5
     },
-    {
+    "mongo": {
       "type": "file",
       "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}-${opts:pmid}.log",
       "maxLogSize": 8388608,
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "mongo"
+      "backups": 5
     }
-  ],
-  "levels": {
-    "console": "DEBUG",
-    "context": "DEBUG",
-    "mongo": "DEBUG"
   },
-  "replaceConsole": true,
-  "lineDebug": true
+  "categories": {
+    "default": {
+      "appenders": [
+        "stdout"
+      ],
+      "level": "debug"
+    },
+    "context": {
+      "appenders": [
+        "stdout",
+        "context"
+      ],
+      "level": "debug"
+    },
+    "mongo": {
+      "appenders": [
+        "stdout",
+        "mongo"
+      ],
+      "level": "debug"
+    }
+  },
+  "lineDebug": true,
+  "fileDebug": true
 }

@@ -1,6 +1,5 @@
 var Access = {};
 Access.auth = function (store, method, req, onSuccess, onError) {
-    console.log('我是自定义的权限验证函数');
     onSuccess();
 };
 Access.store = {

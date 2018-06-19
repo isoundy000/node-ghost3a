@@ -1,6 +1,6 @@
 var log4js = require('log4js');
-var logConfig = {};
 var lineDebug = false;
+var fileDebug = false;
 var styles = {
     //styles
     'bold': [1, 22],
@@ -31,9 +31,8 @@ var colours = {
 };
 var Logx4js = function (category, filepath, serverTag) {
     this.logger = log4js.getLogger(category);
-    this.category = category;
-    this.filepath = filepath ? '[' + filepath + '] ' : '';
-    this.serverTag = serverTag ? '[' + serverTag + '] ' : '';
+    this.filepath = filepath;
+    this.serverTag = '[' + serverTag + '] ';
 };
 Logx4js.prototype.trace = function () {
     arguments[0] = this.getPrefix('trace') + arguments[0];
@@ -61,7 +60,7 @@ Logx4js.prototype.fatal = function () {
     this.logger.fatal.apply(this.logger, arguments);
 };
 Logx4js.prototype.getPrefix = function (level) {
-    return colorize((lineDebug ? (getLine() + ': ') : '') + this.filepath, colours[level]) + this.serverTag;
+    return colorize((fileDebug ? this.filepath + (lineDebug ? ':' + getLine() + ' ' : ' ') : '') + this.serverTag, colours[level]);
 };
 
 function getLine() {
@@ -85,8 +84,8 @@ module.exports = {
      * @param cfg 日志配置文件
      */
     configure: function (cfg) {
-        logConfig = cfg;
         lineDebug = !!cfg.lineDebug;
+        fileDebug = !!cfg.fileDebug;
         log4js.configure(cfg);
     },
     /**
