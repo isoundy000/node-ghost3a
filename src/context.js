@@ -7,8 +7,8 @@ var websocket = require('ws');
 var fs = require('fs');
 var crypto = require('crypto');
 var logx4js = require('./logx4js');
-var Context = function (env, port, type) {
-    this.base = path.dirname(process.argv[1]);
+var Context = function (base, env, port, type) {
+    this.base = base;
     this.env = env;
     this.port = port;
     this.type = type;
@@ -306,8 +306,8 @@ module.exports = {
      * @param type 服务器种类（如：master、slave等自由定义）
      * @returns {Context} 类实例
      */
-    create: function (env, port, type) {
-        return new Context(env, port, type);
+    create: function (base, env, port, type) {
+        return new Context(base, env, port, type);
     }
 };
 
