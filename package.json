@@ -1,14 +1,11 @@
 {
   "name": "node-ghost3a",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "private": false,
   "description": "web服务器集成框架、websocket服务器集成框架",
   "main": "ghost3a.js",
   "scripts": {
-    "test1": "node ./test/app.js development 8080 master",
-    "test2": "node ./test/app.js development 8081 slave",
-    "test3": "node ./test/app.js production 8082 master",
-    "test4": "node ./test/app.js production 8083 slave"
+    "test": "node ./test/app.js development 8080 master"
   },
   "repository": {
     "type": "git",

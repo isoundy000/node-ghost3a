@@ -1,12 +1,12 @@
-var path = require('path'),
-    compress = require('compression'),
-    cookieParser = require('cookie-parser'),
-    bodyParser = require('body-parser'),
-    multer = require('multer'),
-    websocket = require('ws'),
-    fs = require('fs'),
-    crypto = require('crypto'),
-    logx4js = require('./logx4js');
+var path = require('path');
+var compress = require('compression');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var multer = require('multer');
+var websocket = require('ws');
+var fs = require('fs');
+var crypto = require('crypto');
+var logx4js = require('./logx4js');
 var Context = function (base, env, port, type) {
     this.base = base;
     this.env = env;
@@ -298,14 +298,17 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
         this.logger.info('logx4js config ->\n', JSON.stringify(this.logcfg, null, 2));
     }
 };
-/**
- * @param base 服务器根目录
- * @param env 服务器环境类型（如：development、production等自由定义）
- * @param port 服务器端口号
- * @param type 服务器种类（如：master、slave等自由定义）
- * @returns {Context} 类实例
- */
-module.exports = function (base, env, port, type) {
-    return new Context(base, env, port, type);
+
+module.exports = {
+    /**
+     * @param base 服务器根目录
+     * @param env 服务器环境类型（如：development、production等自由定义）
+     * @param port 服务器端口号
+     * @param type 服务器种类（如：master、slave等自由定义）
+     * @returns {Context} 类实例
+     */
+    create: function (base, env, port, type) {
+        return new Context(base, env, port, type);
+    }
 };
 

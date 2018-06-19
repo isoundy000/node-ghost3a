@@ -1,6 +1,34 @@
 var log4js = require('log4js');
 var logConfig = {};
 var lineDebug = false;
+var styles = {
+    //styles
+    'bold': [1, 22],
+    'italic': [3, 23],
+    'underline': [4, 24],
+    'inverse': [7, 27],
+    //grayscale
+    'white': [37, 39],
+    'grey': [90, 39],
+    'black': [90, 39],
+    //colors
+    'blue': [34, 39],
+    'cyan': [36, 39],
+    'green': [32, 39],
+    'magenta': [35, 39],
+    'red': [31, 39],
+    'yellow': [33, 39]
+};
+var colours = {
+    'all': 'grey',
+    'trace': 'blue',
+    'debug': 'cyan',
+    'info': 'green',
+    'warn': 'yellow',
+    'error': 'red',
+    'fatal': 'magenta',
+    'off': 'grey'
+};
 var Logx4js = function (category, filename, serverTag) {
     this.logger = log4js.getLogger(category);
     this.category = category;
@@ -34,38 +62,6 @@ Logx4js.prototype.fatal = function () {
 };
 Logx4js.prototype.getPrefix = function (level) {
     return colorize((lineDebug ? (getLine() + ': ') : '') + this.filename, colours[level]) + this.serverTag;
-};
-/**
- * 输出颜色相关
- */
-var styles = {
-    //styles
-    'bold': [1, 22],
-    'italic': [3, 23],
-    'underline': [4, 24],
-    'inverse': [7, 27],
-    //grayscale
-    'white': [37, 39],
-    'grey': [90, 39],
-    'black': [90, 39],
-    //colors
-    'blue': [34, 39],
-    'cyan': [36, 39],
-    'green': [32, 39],
-    'magenta': [35, 39],
-    'red': [31, 39],
-    'yellow': [33, 39]
-};
-
-var colours = {
-    'all': 'grey',
-    'trace': 'blue',
-    'debug': 'cyan',
-    'info': 'green',
-    'warn': 'yellow',
-    'error': 'red',
-    'fatal': 'magenta',
-    'off': 'grey'
 };
 
 function getLine() {
