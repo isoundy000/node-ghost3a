@@ -205,26 +205,23 @@ Context.prototype.registerApi = function () {
                 privilege = self.access.store[store];
             if (method === 'fields' || method === 'mimeType' || !privilege || !privilege[method]) {
                 res.json({
-                    success: false,
-                    message: '没有权限',
-                    command: 401
+                    code: 405,
+                    data: 'Method Not Allowed'
                 });
             } else {
-                self.access.auth(store, method, req, function () {
+                self.access.authorize(store, method, req, function () {
                     next();
-                }, function () {
+                }, function (code, data) {
                     res.json({
-                        success: false,
-                        message: '没有权限',
-                        command: 401
+                        code: code || 401,
+                        data: data || 'Unauthorized'
                     });
                 });
             }
         } else {
             res.json({
-                success: false,
-                message: '没有权限',
-                command: 401
+                code: 501,
+                data: 'Not Implemented'
             });
         }
     });
@@ -242,29 +239,25 @@ Context.prototype.registerApi = function () {
                     logger.debug('data -> \n', data);
                     self.mongo.insertOneDoc(store, data, null, function (obj, n) {
                         res.json({
-                            success: true,
-                            message: '上传文件成功',
+                            code: 200,
                             data: obj
                         });
                     }, function (error) {
                         res.json({
-                            success: false,
-                            message: error.toString(),
-                            command: 500
+                            code: 500,
+                            data: 'Internal Server Error, ' + error.toString()
                         });
                     });
                 } else {
                     res.json({
-                        success: false,
-                        message: error.toString(),
-                        command: 400
+                        code: 500,
+                        data: 'Internal Server Error, ' + error.toString()
                     });
                 }
             } else {
                 res.json({
-                    success: false,
-                    message: error ? error.toString() : '上传文件失败',
-                    command: 400
+                    code: 400,
+                    data: 'Bad Request, ' + (error ? error.toString() : 'Error: 没有收到文件')
                 });
             }
         });

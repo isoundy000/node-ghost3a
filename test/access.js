@@ -1,6 +1,8 @@
 var Access = {};
-Access.auth = function (store, method, req, onSuccess, onError) {
+Access.authorize = function (store, method, req, onSuccess, onError) {
     onSuccess();
+    // onError();
+    // onError(666666, '自定义错误码');
 };
 Access.store = {
     picture: {
