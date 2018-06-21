@@ -103,8 +103,8 @@ Context.prototype.getIPV4 = function (req) {
     return ip;
 };
 Context.prototype.getMd5 = function (strData) {
-    var buf = new Buffer(strData),
-        str = buf.toString("binary");//解决md5加密的中文编码不一致问题
+    var buf = new Buffer(strData);
+    var str = buf.toString("binary");//解决md5加密的中文编码不一致问题
     return crypto.createHash("md5").update(str).digest("hex").toUpperCase();
 };
 Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) {
@@ -159,17 +159,17 @@ Context.prototype.registerUpload = function () {
     var config = this.config.serverConfig;
     var storage = multer.diskStorage({
         destination: function (req, file, callback) {
-            var store = req.params.store,
-                date = new Date(),
-                folder = config.webUploadDir + '/' + store + '/' + date.getFullYear() + '_' + (date.getMonth() + 1) + '_' + date.getDate() + '/';
+            var store = req.params.store;
+            var date = new Date();
+            var folder = config.webUploadDir + '/' + store + '/' + date.getFullYear() + '_' + (date.getMonth() + 1) + '_' + date.getDate() + '/';
             self.makeDirs(folder, null, function (dirpath) {
                 logger.debug('makeDirs after:', dirpath);
                 callback(null, dirpath);
             });
         },
         filename: function (req, file, callback) {
-            var store = req.params.store,
-                privilege = self.access.store[store];
+            var store = req.params.store;
+            var privilege = self.access.store[store];
             if (privilege && privilege.mimeType) {
                 var suffix = privilege.mimeType[file.mimetype.toLowerCase()];
                 if (suffix) {
@@ -200,9 +200,9 @@ Context.prototype.registerApi = function () {
         logger.debug('req.cookies -> \n', req.cookies);
         logger.debug('req.signedCookies -> \n', req.signedCookies);
         if (self.access) {
-            var store = req.params.store,
-                method = req.params.method,
-                privilege = self.access.store[store];
+            var store = req.params.store;
+            var method = req.params.method;
+            var privilege = self.access.store[store];
             if (method === 'fields' || method === 'mimeType' || !privilege || !privilege[method]) {
                 res.json({
                     code: 405,

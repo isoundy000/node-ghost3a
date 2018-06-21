@@ -73,8 +73,8 @@ Mongo.prototype.insertOneDoc = function (name, doc, options, onSuccess, onError)
 };
 Mongo.prototype.insertManyDocs = function (name, docs, options, onItem, onSuccess, onError) {
     options = options || {};
-    var self = this,
-        time = Date.now();
+    var self = this;
+    var time = Date.now();
     for (var i = 0; i < docs.length; i++) {
         var doc = docs[i];
         if (!doc._id) {
@@ -321,8 +321,8 @@ Mongo.prototype.aggregate = function (name, pipeline, options, onSuccess, onErro
     });
 };
 Mongo.prototype.increment = function (name, key, step, onSuccess, onError) {
-    var self = this,
-        inc = {};
+    var self = this;
+    var inc = {};
     inc[key] = step;
     self.connect(name, function (store) {
         store.findOneAndUpdate({}, {
@@ -354,10 +354,6 @@ Mongo.prototype.increment = function (name, key, step, onSuccess, onError) {
  */
 Mongo.prototype.genID = function () {
     return new this.mongodb.ObjectID().toString();
-};
-Mongo.prototype.genID14 = function () {
-    var id = new this.mongodb.ObjectID().toString();
-    return id.substring(0, 8) + id.substring(18, 24);//该方案去掉了机器号码与进程号码
 };
 Mongo.prototype.getDayStart = function (baseDate, offsetDay) {
     var fd = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + offsetDay).format('yyyy-MM-dd 00:00:00');
