@@ -1,6 +1,6 @@
 {
   "name": "node-ghost3a",
-  "version": "1.3.2",
+  "version": "1.3.6",
   "private": false,
   "description": "web服务器集成框架、websocket服务器集成框架",
   "main": "ghost3a.js",
@@ -31,7 +31,7 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.16.3",
     "express-xml-bodyparser": "^0.3.0",
-    "log4js": "^2.9.0",
+    "log4js": "^3.0.2",
     "mongodb": "^3.0.10",
     "multer": "^1.3.0",
     "node-schedule": "^1.3.0",

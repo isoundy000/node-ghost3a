@@ -22,6 +22,9 @@ app.configure('production', function () {
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     mongo.insertOneDoc('test', {time: Date.now()});
+    mongo.countDocs('test', {}, null, function (n) {
+        app.logger.info('test count:', n);
+    });
     app.start(mongo, access, function () {
         //加载静态资源
         app.configure('development|production', function () {
@@ -49,7 +52,7 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
         });
     });
 });
-app.printInfo(true, true);
+// app.printInfo(true, true);
 /**
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃
  */

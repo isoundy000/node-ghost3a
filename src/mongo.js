@@ -285,10 +285,11 @@ Mongo.prototype.deleteManyDocs = function (name, filter, options, onSuccess, onE
         });
     });
 };
-Mongo.prototype.count = function (name, query, onSuccess, onError, context) {
+Mongo.prototype.countDocs = function (name, query, options, onSuccess, onError, context) {
+    options = options || {};
     var self = this;
     self.connect(name, function (store) {
-        store.count(query, function (error, total) {
+        store.countDocuments(query, options, function (error, total) {
             if (!error) {
                 if (onSuccess) {
                     onSuccess(total, context);
