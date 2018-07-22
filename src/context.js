@@ -39,7 +39,7 @@ Context.prototype.loadLogx4js = function (filepath) {
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:name\\}', 'gm'), this.name);
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:port\\}', 'gm'), this.port);
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:pmid\\}', 'gm'), this.pmid);
-    this.logcfg = JSON.parse(logStr);
+    this.logcfg = JSON.parse(logStr)[this.env];
     logx4js.configure(this.logcfg);
     this.logger = this.getLogger('context', __filename);
 };
