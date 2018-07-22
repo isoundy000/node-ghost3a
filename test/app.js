@@ -25,6 +25,9 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     mongo.countDocs('test', {}, null, function (n) {
         app.logger.info('test count:', n);
     });
+    mongo.findManyDocs('test', {}, null, {}, 0, 100, null, function (docs, total) {
+        app.logger.info('test total:', total);
+    });
     app.start(mongo, access, function () {
         //加载静态资源
         app.configure('development|production', function () {

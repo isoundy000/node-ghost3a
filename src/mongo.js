@@ -132,7 +132,7 @@ Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limi
     self.connect(name, function (store) {
         store.find(query, options).sort(sort).skip(start).limit(limit).toArray(function (error, docs) {
             if (!error) {
-                store.count(query, function (error, total) {
+                store.countDocuments(query, options, function (error, total) {
                     if (!error) {
                         if (join && docs.length > 0) {
                             //模拟关系数据库join查询,当前只支持 “单个字段 双表 左外连接”
