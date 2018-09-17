@@ -12,35 +12,97 @@
     <input type="text" name="desc"/>
     <button type="submit">提交</button>
 </form>
-<button onclick="openWss()">wss连接</button>
-<button onclick="sendWss()">wss发送</button>
-<button onclick="closeWss()">wss关闭</button>
+<button onclick="onOpenWss()">onOpenWss</button>
+<button onclick="onCloseWss()">onCloseWss</button>
+<button onclick="onLogin()">onLogin</button>
+<button onclick="onJoinRoom()">onJoinRoom</button>
+<button onclick="onQuitRoom()">onQuitRoom</button>
+<button onclick="onPushRoom()">onPushRoom</button>
+<button onclick="onBroadcast()">onBroadcast</button>
+<button onclick="onBeClose()">onBeClose</button>
 <script>
-    var ws;
+    var client;
+    var reqId = 0;
 
-    function openWss() {
-        ws = new WebSocket("ws://localhost:8080/");
-        ws.onopen = function (event) {
+    function onOpenWss() {
+        client = new WebSocket("ws://localhost:8081/");
+        client.onopen = function (event) {
             console.log("onopen ...");
         };
-        ws.onmessage = function (event) {
+        client.onmessage = function (event) {
             console.log("onmessage: " + event.data);
         };
-        ws.onclose = function (event) {
+        client.onclose = function (event) {
             console.log("onclose.");
         };
-        ws.onerror = function (event) {
+        client.onerror = function (event) {
             console.log(" onerror.");
         }
-        console.log(ws);
+        console.log(client);
     }
 
-    function sendWss() {
-        ws.send("几点了？");
+    function onCloseWss() {
+        client.close();
     }
 
-    function closeWss() {
-        ws.close();
+    function onLogin() {
+        client.send(JSON.stringify({
+            route: 'onLogin',
+            reqId: reqId++,
+            message: {
+                uid: Math.random()
+            }
+        }));
+    }
+
+    function onJoinRoom() {
+        client.send(JSON.stringify({
+            route: 'onJoinRoom',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
+    }
+
+    function onQuitRoom() {
+        client.send(JSON.stringify({
+            route: 'onQuitRoom',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
+    }
+
+    function onPushRoom() {
+        client.send(JSON.stringify({
+            route: 'onPushRoom',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
+    }
+
+    function onBroadcast() {
+        client.send(JSON.stringify({
+            route: 'onBroadcast',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
+    }
+
+    function onBeClose() {
+        client.send(JSON.stringify({
+            route: 'onBeClose',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
     }
 </script>
 </body>

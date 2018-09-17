@@ -1,4 +1,5 @@
-var Mongo = function (cfg, context, onConnected) {
+"use strict";
+const Mongo = function (cfg, context, onConnected) {
     this.mongodb = require('mongodb');
     this.cfg = cfg;//数据库配置
     this.logger = context.getLogger('mongo', __filename);//日志记录器
@@ -10,7 +11,7 @@ var Mongo = function (cfg, context, onConnected) {
  * 创建销毁
  */
 Mongo.prototype.connect = function (name, callback) {
-    var self = this;
+    const self = this;
     if (self.db) {
         self.onConnected(name, callback);
     } else {
@@ -26,13 +27,13 @@ Mongo.prototype.connect = function (name, callback) {
     }
 };
 Mongo.prototype.destroy = function () {
-    var self = this;
+    const self = this;
     if (self.db) {
         self.db.close();
     }
 };
 Mongo.prototype.onConnected = function (name, callback) {
-    var self = this;
+    const self = this;
     if (callback) {
         if (name) {
             if (!self.set[name]) {
@@ -49,7 +50,7 @@ Mongo.prototype.onConnected = function (name, callback) {
  */
 Mongo.prototype.insertOneDoc = function (name, doc, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     if (!doc._id) {
         doc._id = self.genID();
     }
@@ -73,10 +74,10 @@ Mongo.prototype.insertOneDoc = function (name, doc, options, onSuccess, onError)
 };
 Mongo.prototype.insertManyDocs = function (name, docs, options, onItem, onSuccess, onError) {
     options = options || {};
-    var self = this;
-    var time = Date.now();
-    for (var i = 0; i < docs.length; i++) {
-        var doc = docs[i];
+    const self = this;
+    const time = Date.now();
+    for (let i = 0; i < docs.length; i++) {
+        const doc = docs[i];
         if (!doc._id) {
             doc._id = self.genID();
         }
@@ -104,7 +105,7 @@ Mongo.prototype.insertManyDocs = function (name, docs, options, onItem, onSucces
 };
 Mongo.prototype.findOneDoc = function (name, query, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.findOne(query, options, function (error, doc) {
             if (!error) {
@@ -128,7 +129,7 @@ Mongo.prototype.findOneDoc = function (name, query, options, onSuccess, onError)
 };
 Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limit, join, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.find(query, options).sort(sort).skip(start).limit(limit).toArray(function (error, docs) {
             if (!error) {
@@ -136,9 +137,9 @@ Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limi
                     if (!error) {
                         if (join && docs.length > 0) {
                             //模拟关系数据库join查询,当前只支持 “单个字段 双表 左外连接”
-                            var or = [];
-                            for (var i = 0; i < docs.length; i++) {
-                                var param = {};
+                            const or = [];
+                            for (let i = 0; i < docs.length; i++) {
+                                const param = {};
                                 param[join.right] = docs[i][join.left];
                                 or.push(param);
                             }
@@ -147,11 +148,11 @@ Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limi
                             self.connect(join.target, function (target) {
                                 target.find({$or: or}, join.options).sort(join.sort).toArray(function (error, items) {
                                     if (!error) {
-                                        for (var i = 0; i < docs.length; i++) {
-                                            var doc = docs[i];
+                                        for (let i = 0; i < docs.length; i++) {
+                                            const doc = docs[i];
                                             doc[join.root] = [];
-                                            for (var j = 0; j < items.length; j++) {
-                                                var item = items[j];
+                                            for (let j = 0; j < items.length; j++) {
+                                                const item = items[j];
                                                 if (doc[join.left] === item[join.right]) {
                                                     doc[join.root].push(item);
                                                 }
@@ -191,7 +192,7 @@ Mongo.prototype.findManyDocs = function (name, query, options, sort, start, limi
 };
 Mongo.prototype.updateOneDoc = function (name, filter, update, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.updateOne(filter, update, options, function (error, result) {
             if (!error) {
@@ -209,7 +210,7 @@ Mongo.prototype.updateOneDoc = function (name, filter, update, options, onSucces
 };
 Mongo.prototype.updateManyDocs = function (name, filter, update, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.updateMany(filter, update, options, function (error, result) {
             if (!error) {
@@ -227,7 +228,7 @@ Mongo.prototype.updateManyDocs = function (name, filter, update, options, onSucc
 };
 Mongo.prototype.findAndUpdateOneDoc = function (name, filter, update, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.findOneAndUpdate(filter, update, options, function (error, result) {
             if (!error) {
@@ -251,7 +252,7 @@ Mongo.prototype.findAndUpdateOneDoc = function (name, filter, update, options, o
 };
 Mongo.prototype.deleteOneDoc = function (name, filter, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.deleteOne(filter, options, function (error, result) {
             if (!error) {
@@ -269,7 +270,7 @@ Mongo.prototype.deleteOneDoc = function (name, filter, options, onSuccess, onErr
 };
 Mongo.prototype.deleteManyDocs = function (name, filter, options, onSuccess, onError) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.deleteMany(filter, options, function (error, result) {
             if (!error) {
@@ -287,7 +288,7 @@ Mongo.prototype.deleteManyDocs = function (name, filter, options, onSuccess, onE
 };
 Mongo.prototype.countDocs = function (name, query, options, onSuccess, onError, context) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.countDocuments(query, options, function (error, total) {
             if (!error) {
@@ -305,7 +306,7 @@ Mongo.prototype.countDocs = function (name, query, options, onSuccess, onError, 
 };
 Mongo.prototype.aggregate = function (name, pipeline, options, onSuccess, onError, context) {
     options = options || {};
-    var self = this;
+    const self = this;
     self.connect(name, function (store) {
         store.aggregate(pipeline, options, function (error, result) {
             if (!error) {
@@ -322,8 +323,8 @@ Mongo.prototype.aggregate = function (name, pipeline, options, onSuccess, onErro
     });
 };
 Mongo.prototype.increment = function (name, key, step, onSuccess, onError) {
-    var self = this;
-    var inc = {};
+    const self = this;
+    const inc = {};
     inc[key] = step;
     self.connect(name, function (store) {
         store.findOneAndUpdate({}, {
@@ -357,11 +358,11 @@ Mongo.prototype.genID = function () {
     return new this.mongodb.ObjectID().toString();
 };
 Mongo.prototype.getDayStart = function (baseDate, offsetDay) {
-    var fd = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + offsetDay).format('yyyy-MM-dd 00:00:00');
+    const fd = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + offsetDay).format('yyyy-MM-dd 00:00:00');
     return Date.parse(fd);
 };
 Mongo.prototype.getMonthStart = function (baseDate, offsetMonth) {
-    var fd = new Date(baseDate.getFullYear(), baseDate.getMonth() + offsetMonth, 1).format('yyyy-MM-01 00:00:00');
+    const fd = new Date(baseDate.getFullYear(), baseDate.getMonth() + offsetMonth, 1).format('yyyy-MM-01 00:00:00');
     return Date.parse(fd);
 };
 

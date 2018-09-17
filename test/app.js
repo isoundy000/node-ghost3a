@@ -1,9 +1,10 @@
-var ghost3a = require('../ghost3a');
-var access = require('./access');
+"use strict";
+const ghost3a = require('../ghost3a');
+const access = require('./access');
 /**
  * 初始化
  */
-var app = ghost3a.context.create(__filename, process.argv[2], process.argv[3], process.argv[4], '0');
+const app = ghost3a.context.create(__filename, process.argv[2], process.argv[3], process.argv[4], '0');
 app.loadLogx4js(app.getBase() + '/config/logx4js.json');//最先调用以便输出后续步骤的日志
 app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
 app.configure('development|production', function () {
@@ -40,18 +41,30 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
         });
     }, function () {
         //加载逻辑接口
-        app.wssapp.on('connection', function (socket) {
-            app.logger.info('on connection');
-            socket.on('message', function (message) {
-                app.logger.info('on message: %s', message);
-                socket.send('时间: ' + new Date() + ', md5 = ' + app.getMd5(message));
-            });
-            socket.on('close', function () {
-                app.logger.info('on close');
-            });
-            socket.on('error', function (error) {
-                app.logger.info('on error', error);
-            });
+        const router = ghost3a.router(app);
+        router.start({
+            onLogin: function (session, pack) {
+                session.bindUid(pack.message.uid);
+                router.response(session, pack, '登录成功');
+            },
+            onJoinRoom: function (session, pack) {
+                router.joinChannel(session, pack.message.rid);
+                router.response(session, pack, '进入房间成功');
+            },
+            onQuitRoom: function (session, pack) {
+                router.quitChannel(session, pack.message.rid);
+                router.response(session, pack, '退出房间成功');
+            },
+            onPushRoom: function (session, pack) {
+                router.pushChannel(pack.message.rid, 'onPushRoom', '大家好' + new Date());
+            },
+            onBroadcast: function (session, pack) {
+                router.broadcast('onBroadcast', '大家好' + new Date());
+            },
+            onBeClose: function (session, pack) {
+                router.pushData(session, 'onBeClose', "即将被动关闭");
+                session.socket.close();
+            }
         });
     });
 });

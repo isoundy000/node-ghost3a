@@ -1,4 +1,5 @@
-var Access = {};
+"use strict";
+const Access = {};
 Access.authorize = function (store, method, req, onSuccess, onError) {
     onSuccess();
     // onError();

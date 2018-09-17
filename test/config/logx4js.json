@@ -32,21 +32,21 @@
         "appenders": [
           "stdout"
         ],
-        "level": "debug"
+        "level": "trace"
       },
       "context": {
         "appenders": [
           "stdout",
           "context"
         ],
-        "level": "debug"
+        "level": "trace"
       },
       "mongo": {
         "appenders": [
           "stdout",
           "mongo"
         ],
-        "level": "debug"
+        "level": "trace"
       }
     },
     "lineDebug": true

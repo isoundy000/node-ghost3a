@@ -1,5 +1,6 @@
 module.exports = {
     context: require('./src/context'),
     logx4js: require('./src/logx4js'),
-    mongodb: require('./src/mongo')
+    mongodb: require('./src/mongo'),
+    router: require('./src/router')
 };

@@ -1,9 +1,10 @@
-var log4js = require('log4js');
-var lineDebug = false;
-var Logx4js = function (category, contexts) {
+"use strict";
+const log4js = require('log4js');
+let lineDebug = false;
+const Logx4js = function (category, contexts) {
     this.logger = log4js.getLogger(category);
     if (contexts) {
-        for (var key in contexts) {
+        for (let key in contexts) {
             this.logger.addContext(key, contexts[key]);
         }
     }
