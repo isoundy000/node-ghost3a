@@ -27,7 +27,7 @@ Router.prototype.start = function (hander) {
         });
         self.logger.info('on connection', session.ip);
     });
-    self.logger.info('router init success.');
+    self.logger.info('router startup success.');
 };
 Router.prototype.onSocketData = function (session, json) {
     const self = this;

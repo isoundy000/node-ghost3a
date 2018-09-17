@@ -25,6 +25,15 @@
           "type": "basic"
         },
         "backups": 5
+      },
+      "router": {
+        "type": "file",
+        "filename": "${opts:base}/logs/router-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "maxLogSize": 8388608,
+        "layout": {
+          "type": "basic"
+        },
+        "backups": 5
       }
     },
     "categories": {
@@ -45,6 +54,13 @@
         "appenders": [
           "stdout",
           "mongo"
+        ],
+        "level": "trace"
+      },
+      "router": {
+        "appenders": [
+          "stdout",
+          "router"
         ],
         "level": "trace"
       }
@@ -77,6 +93,15 @@
           "type": "basic"
         },
         "backups": 5
+      },
+      "router": {
+        "type": "file",
+        "filename": "${opts:base}/logs/router-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "maxLogSize": 8388608,
+        "layout": {
+          "type": "basic"
+        },
+        "backups": 5
       }
     },
     "categories": {
@@ -95,6 +120,12 @@
       "mongo": {
         "appenders": [
           "mongo"
+        ],
+        "level": "debug"
+      },
+      "router": {
+        "appenders": [
+          "router"
         ],
         "level": "debug"
       }
