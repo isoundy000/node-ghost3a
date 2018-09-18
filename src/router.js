@@ -1,5 +1,8 @@
 "use strict";
 const Session = require('./session');
+const HEARTICK = '$heartick$';
+const RESPONSE = '$response$';
+const NULLPATH = '$nullpath$';
 const Router = function (app) {
     this.app = app;
     this.logger = app.getLogger('router', __filename);
@@ -32,17 +35,37 @@ Router.prototype.start = function (hander) {
 Router.prototype.onSocketData = function (session, json) {
     const self = this;
     self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
-    const pack = JSON.parse(json);
-    if (self.handler[pack.route]) {
+    let pack;
+    try {
+        pack = JSON.parse(json);
+    } catch (e) {
+        self.pushData(session, NULLPATH, {
+            code: 400,
+            data: 'Bad Request'
+        });
+        return;
+    }
+    if (pack.route.indexOf('$_') === 0) {
+        //该前缀的函数作为路由对象的私有函数，不进行转发
+        self.response(session, pack, {
+            code: 405,
+            data: 'Method Not Allowed'
+        });
+    } else if (self.handler[pack.route]) {
+        //转发到路由对象的对应函数
         self.handler[pack.route](session, pack);
     } else if (self.handler.onSocketData) {
+        //路由对象自定义了路由规则
         self.handler.onSocketData(session, pack);
+    } else if (pack.route === HEARTICK) {
+        //心跳包
+        self.pushData(session, HEARTICK, pack.message);
     } else {
-        if (pack.route === '$heartick$') {
-            self.pushData(session, '$heartick$', pack.message);
-        } else {
-            self.response(session, pack, pack.message);
-        }
+        //无路由
+        self.pushData(session, NULLPATH, {
+            code: 501,
+            data: 'Not Implemented'
+        });
     }
     self.traceChannel('onSocketData', session);
 };
@@ -75,7 +98,7 @@ Router.prototype.onSocketError = function (session, error) {
 Router.prototype.response = function (session, pack, message) {
     const self = this;
     const json = JSON.stringify({
-        route: '$response$',
+        route: RESPONSE,
         reqId: pack.reqId,
         message: message
     });

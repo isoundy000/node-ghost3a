@@ -20,6 +20,9 @@
 <button onclick="onPushRoom()">onPushRoom</button>
 <button onclick="onBroadcast()">onBroadcast</button>
 <button onclick="onBeClose()">onBeClose</button>
+<button onclick="ruleError()">ruleError</button>
+<button onclick="$_deny()">$_deny</button>
+<button onclick="nullPath()">nullPath</button>
 <script>
     var client;
     var reqId = 0;
@@ -98,6 +101,29 @@
     function onBeClose() {
         client.send(JSON.stringify({
             route: 'onBeClose',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
+    }
+
+    function ruleError() {
+        client.send('测试错误的语法');
+    }
+
+    function $_deny() {
+        client.send(JSON.stringify({
+            route: '$_deny',
+            reqId: reqId++,
+            message: {
+                rid: 1
+            }
+        }));
+    }
+    function nullPath() {
+        client.send(JSON.stringify({
+            route: 'nullPath',
             reqId: reqId++,
             message: {
                 rid: 1
