@@ -20,9 +20,10 @@
 <button onclick="onPushRoom()">onPushRoom</button>
 <button onclick="onBroadcast()">onBroadcast</button>
 <button onclick="onBeClose()">onBeClose</button>
-<button onclick="ruleError()">ruleError</button>
+<button onclick="nosyntax()">nosyntax</button>
 <button onclick="$_deny()">$_deny</button>
-<button onclick="nullPath()">nullPath</button>
+<button onclick="norouter()">norouter</button>
+<button onclick="$heartick$()">$heartick$</button>
 <script>
     var client;
     var reqId = 0;
@@ -108,7 +109,7 @@
         }));
     }
 
-    function ruleError() {
+    function nosyntax() {
         client.send('测试错误的语法');
     }
 
@@ -121,13 +122,20 @@
             }
         }));
     }
-    function nullPath() {
+    function norouter() {
         client.send(JSON.stringify({
-            route: 'nullPath',
+            route: 'norouter',
             reqId: reqId++,
             message: {
                 rid: 1
             }
+        }));
+    }
+    function $heartick$() {
+        client.send(JSON.stringify({
+            route: '$heartick$',
+            reqId: reqId++,
+            message:Date.now()
         }));
     }
 </script>

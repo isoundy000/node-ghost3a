@@ -2,7 +2,7 @@
 const Session = require('./session');
 const HEARTICK = '$heartick$';
 const RESPONSE = '$response$';
-const NULLPATH = '$nullpath$';
+const NOSYNTAX = '$nosyntax$';
 const Router = function (app) {
     this.app = app;
     this.logger = app.getLogger('router', __filename);
@@ -39,7 +39,7 @@ Router.prototype.onSocketData = function (session, json) {
     try {
         pack = JSON.parse(json);
     } catch (e) {
-        self.pushData(session, NULLPATH, {
+        self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request'
         });
@@ -62,12 +62,11 @@ Router.prototype.onSocketData = function (session, json) {
         self.pushData(session, HEARTICK, pack.message);
     } else {
         //无路由
-        self.pushData(session, NULLPATH, {
+        self.response(session, pack, {
             code: 501,
             data: 'Not Implemented'
         });
     }
-    self.traceChannel('onSocketData', session);
 };
 Router.prototype.onSocketClose = function (session, code, reason) {
     const self = this;
@@ -79,7 +78,6 @@ Router.prototype.onSocketClose = function (session, code, reason) {
         });
     }
     self.logger.info('onSocketClose:', session.uid, code, reason);
-    self.traceChannel('onSocketClose', session);
 };
 Router.prototype.onSocketError = function (session, error) {
     const self = this;
@@ -93,7 +91,6 @@ Router.prototype.onSocketError = function (session, error) {
         session.socket.close();
     }
     self.logger.error('onSocketError:', session.uid, error);
-    self.traceChannel('onSocketClose', session);
 };
 Router.prototype.response = function (session, pack, message) {
     const self = this;
@@ -124,6 +121,7 @@ Router.prototype.joinChannel = function (session, gid) {
     }
     self.channel[gid] = group;
     self.logger.debug('joinChannel:', gid, session.uid);
+    self.logger.trace('joinChannel', self.channel, session.channel);
 };
 Router.prototype.quitChannel = function (session, gid) {
     const self = this;
@@ -139,6 +137,7 @@ Router.prototype.quitChannel = function (session, gid) {
         delete self.channel[gid];
     }
     self.logger.debug('quitChannel:', gid, session.uid);
+    self.logger.trace('quitChannel', self.channel, session.channel);
 };
 Router.prototype.pushChannel = function (gid, route, message) {
     const self = this;
@@ -159,14 +158,11 @@ Router.prototype.broadcast = function (route, message) {
         message: message
     });
     self.app.wssapp.clients.forEach(function each(socket) {
-        if (socket.readyState === WebSocket.OPEN) {
+        if (socket.readyState === 1) {
             socket.send(json);
         }
     });
     self.logger.debug('broadcast:', json.length, '->', json);
-};
-Router.prototype.traceChannel = function (tag, session) {
-    this.logger.trace(tag, this.channel, session.channel);
 };
 /**
  * @param app
