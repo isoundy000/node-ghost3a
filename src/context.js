@@ -103,10 +103,10 @@ Context.prototype.getIPV4 = function (req) {
     ip = ip.trim() || '127.0.0.1';
     return ip;
 };
-Context.prototype.getMd5 = function (strData) {
+Context.prototype.getMd5 = function (strData, strCode) {
     const buf = new Buffer(strData);
-    const str = buf.toString("binary");//解决md5加密的中文编码不一致问题
-    return crypto.createHash("md5").update(str).digest("hex").toUpperCase();
+    const str = buf.toString(strCode);//strCode='binary'可解决md5加密的中文编码不一致问题
+    return crypto.createHash('md5').update(str).digest('hex').toUpperCase();
 };
 Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) {
     const self = this;
