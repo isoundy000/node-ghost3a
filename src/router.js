@@ -38,7 +38,11 @@ Router.prototype.onSocketData = function (session, json) {
     } else if (self.handler.onSocketData) {
         self.handler.onSocketData(session, pack);
     } else {
-        self.response(session, pack, pack.message);
+        if (pack.route === '$heartick$') {
+            self.pushData(session, '$heartick$', Date.now());
+        } else {
+            self.response(session, pack, pack.message);
+        }
     }
     self.traceChannel('onSocketData', session);
 };
