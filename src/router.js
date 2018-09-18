@@ -39,7 +39,7 @@ Router.prototype.onSocketData = function (session, json) {
         self.handler.onSocketData(session, pack);
     } else {
         if (pack.route === '$heartick$') {
-            self.pushData(session, '$heartick$', Date.now());
+            self.pushData(session, '$heartick$', pack.message);
         } else {
             self.response(session, pack, pack.message);
         }
