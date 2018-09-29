@@ -58,6 +58,11 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
             onPushRoom: function (session, pack) {
                 router.pushChannel(pack.message.rid, 'onPushRoom', '大家好' + new Date());
             },
+            onDeleteRoom: function (session, pack) {
+                router.pushChannel(pack.message.rid, 'onDeleteRoom', '删除前置');
+                router.deleteChannel(pack.message.rid);
+                router.pushChannel(pack.message.rid, 'onDeleteRoom', '删除后置');
+            },
             onBroadcast: function (session, pack) {
                 router.broadcast('onBroadcast', '大家好' + new Date());
             },

@@ -144,6 +144,19 @@ Router.prototype.quitChannel = function (session, gid) {
     self.logger.debug('quitChannel:', gid, session.uid);
     self.logger.trace('quitChannel', self.channel, session.channel);
 };
+Router.prototype.deleteChannel = function (gid) {
+    const self = this;
+    const group = self.channel[gid] || {count: 0, clients: {}};
+    const clients_channels = {};
+    for (let key in group.clients) {
+        let session = group.clients[key];
+        session.quitChannel(gid);
+        clients_channels[key] = session.channel;
+    }
+    delete self.channel[gid];
+    self.logger.debug('deleteChannel:', gid);
+    self.logger.trace('deleteChannel', self.channel, clients_channels);
+};
 Router.prototype.pushChannel = function (gid, route, message) {
     const self = this;
     const group = self.channel[gid] || {count: 0, clients: {}};
