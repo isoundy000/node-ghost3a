@@ -34,11 +34,11 @@ Router.prototype.start = function (hander) {
 };
 Router.prototype.onSocketData = function (session, json) {
     const self = this;
-    self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
     let pack;
     try {
         pack = JSON.parse(json);
     } catch (e) {
+        self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request'
@@ -47,21 +47,26 @@ Router.prototype.onSocketData = function (session, json) {
     }
     if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
+        self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
         self.response(session, pack, {
             code: 405,
             data: 'Method Not Allowed'
         });
     } else if (self.handler[pack.route]) {
         //转发到路由对象的对应函数
+        self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
         self.handler[pack.route](session, pack);
     } else if (self.handler.onSocketData) {
         //路由对象自定义了路由规则
+        self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
         self.handler.onSocketData(session, pack);
     } else if (pack.route === HEARTICK) {
         //心跳包
+        self.logger.trace('onSocketData:', session.uid, json.length, '->', json);
         self.pushData(session, HEARTICK, pack.message);
     } else {
         //无路由
+        self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
         self.response(session, pack, {
             code: 501,
             data: 'Not Implemented'
