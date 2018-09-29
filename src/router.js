@@ -114,7 +114,11 @@ Router.prototype.pushData = function (session, route, message) {
         message: message
     });
     session.socket.send(json);
-    self.logger.debug('pushData:', json.length, '->', json);
+    if (route === HEARTICK) {
+        self.logger.trace('pushData:', json.length, '->', json);
+    } else {
+        self.logger.debug('pushData:', json.length, '->', json);
+    }
 };
 Router.prototype.joinChannel = function (session, gid) {
     const self = this;
