@@ -45,7 +45,11 @@ Router.prototype.onSocketData = function (session, json) {
         });
         return;
     }
-    if (pack.route.indexOf('$_') === 0) {
+    if (self.handler.onSocketData) {
+        //路由对象自定义了路由规则
+        self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
+        self.handler.onSocketData(session, pack);
+    } else if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
         self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
         self.response(session, pack, {
@@ -56,10 +60,6 @@ Router.prototype.onSocketData = function (session, json) {
         //转发到路由对象的对应函数
         self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
         self.handler[pack.route](session, pack);
-    } else if (self.handler.onSocketData) {
-        //路由对象自定义了路由规则
-        self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
-        self.handler.onSocketData(session, pack);
     } else if (pack.route === HEARTICK) {
         //心跳包
         self.logger.trace('onSocketData:', session.uid, json.length, '->', json);
@@ -77,24 +77,23 @@ Router.prototype.onSocketClose = function (session, code, reason) {
     const self = this;
     if (self.handler.onSocketClose) {
         self.handler.onSocketClose(session, code, reason);
-    } else {
-        session.eachChannel(function (gid) {
-            self.quitChannel(session, gid);
-        });
     }
+    //退出已加入的所有分组
+    session.eachChannel(function (gid) {
+        self.quitChannel(session, gid);
+    });
     self.logger.info('onSocketClose:', session.uid, code, reason);
 };
 Router.prototype.onSocketError = function (session, error) {
     const self = this;
     if (self.handler.onSocketError) {
         self.handler.onSocketError(session, error);
-    } else {
-        //此处close()操作不确定是否能触发close事件，所以先执行一次quit操作
-        session.eachChannel(function (gid) {
-            self.quitChannel(session, gid);
-        });
-        session.socket.close();
     }
+    //此处close()操作不确定是否能触发close事件，所以先执行一次quit操作
+    session.eachChannel(function (gid) {
+        self.quitChannel(session, gid);
+    });
+    session.socket.close();
     self.logger.error('onSocketError:', session.uid, error);
 };
 Router.prototype.response = function (session, pack, message) {
