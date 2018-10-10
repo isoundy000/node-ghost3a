@@ -22,6 +22,9 @@ app.configure('production', function () {
     app.set('maxAge', '2h');
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
+    console.log(mongo.formatDate(new Date(mongo.getDayStart(new Date(), 0)), 'yyyy-MM-dd HH:mm:ss'), mongo.getDayStart(new Date(), 0));
+    console.log(mongo.formatDate(new Date(mongo.getMonthStart(new Date(), 0)), 'yyyy-MM-dd HH:mm:ss'), mongo.getMonthStart(new Date(), 0));
+    console.log(mongo.formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss'), new Date(), new Date().toLocaleString());
     mongo.insertOneDoc('test', {time: Date.now()});
     mongo.countDocs('test', {}, null, function (n) {
         app.logger.info('test count:', n);
