@@ -33,7 +33,7 @@ Router.prototype.start = function (hander, heart, timeout) {
     });
     if (heart > 0) {
         self.ticker = setInterval(function () {
-            self.onServerHeart(timeout);
+            self.onServerHeart(heart, timeout);
         }, heart);
     }
     self.logger.info('router startup success.');
@@ -111,28 +111,32 @@ Router.prototype.onSocketError = function (session, error) {
     self.logger.error('onSocketError:', session.id, session.uid, error);
 };
 Router.prototype.onSocketTimeout = function (session, timeout) {
-
+    const self = this;
+    if (self.handler.onSocketTimeout) {
+        self.handler.onSocketTimeout(session, timeout);
+    }
+    //退出已加入的所有分组
+    session.eachChannel(function (gid) {
+        self.quitChannel(session, gid);
+    });
+    session.socket.terminate();//强制关闭连接
+    self.logger.warn('onSocketTimeout:', session.id, session.uid);
 };
-Router.prototype.onServerHeart = function (timeout) {
+Router.prototype.onServerHeart = function (heart, timeout) {
     const self = this;
     if (self.handler.onServerHeart) {
-        self.handler.onServerHeart(timeout);
+        self.handler.onServerHeart(heart, timeout);
     }
     //关闭全部的超时未收到心跳包的连接
     let totalCnt = 0;
     let aliveCnt = 0;
     self.app.wssapp.clients.forEach(function (socket) {
-        let session = socket.session;
         totalCnt++;
-        if (session.isExpired(timeout)) {
-            self.logger.info('Session closed by timeout:', session.id, session.uid);
-            //退出已加入的所有分组
-            session.eachChannel(function (gid) {
-                self.quitChannel(session, gid);
-            });
-            return session.socket.terminate();//强制关闭连接
+        if (socket.session.isExpired(timeout)) {
+            self.onSocketTimeout(socket.session, timeout);
+        } else {
+            aliveCnt++;
         }
-        aliveCnt++;
     });
     self.logger.trace('onServerHeart:', 'totalCnt =', totalCnt + ', aliveCnt =', aliveCnt + ', channels =', self.channel);
 };
