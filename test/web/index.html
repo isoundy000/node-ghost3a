@@ -28,6 +28,7 @@
 <script>
     var client;
     var reqId = 0;
+    var roomId = 'test_room';
 
     function onOpenWss() {
         client = new WebSocket("ws://192.168.31.229:8081/");
@@ -65,7 +66,7 @@
             route: 'onJoinRoom',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -75,7 +76,7 @@
             route: 'onQuitRoom',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -85,7 +86,7 @@
             route: 'onPushRoom',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -95,7 +96,7 @@
             route: 'onDeleteRoom',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -105,7 +106,7 @@
             route: 'onBroadcast',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -115,7 +116,7 @@
             route: 'onBeClose',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -129,7 +130,7 @@
             route: '$_deny',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }
@@ -139,7 +140,7 @@
             route: 'norouter',
             reqId: reqId++,
             message: {
-                rid: 1
+                rid: roomId
             }
         }));
     }

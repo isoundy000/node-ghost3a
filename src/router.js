@@ -51,7 +51,7 @@ Router.prototype.onSocketData = function (session, json) {
     try {
         pack = JSON.parse(json);
     } catch (e) {
-        self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
+        self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request'
@@ -60,27 +60,27 @@ Router.prototype.onSocketData = function (session, json) {
     }
     if (self.handler.onSocketData) {
         //路由对象自定义了路由规则
-        self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
+        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.handler.onSocketData(session, pack);
     } else if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
-        self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
+        self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
             code: 405,
             data: 'Method Not Allowed'
         });
     } else if (self.handler[pack.route]) {
         //转发到路由对象的对应函数
-        self.logger.debug('onSocketData:', session.uid, json.length, '->', json);
+        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.handler[pack.route](session, pack);
     } else if (pack.route === HEARTICK) {
         //心跳包
-        self.logger.trace('onSocketData:', session.uid, json.length, '->', json);
+        self.logger.trace('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         session.resetHeart();//更新最近心跳时间
         self.pushData(session, HEARTICK, pack.message);
     } else {
         //无路由
-        self.logger.warn('onSocketData:', session.uid, json.length, '->', json);
+        self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
             code: 501,
             data: 'Not Implemented'
@@ -96,7 +96,7 @@ Router.prototype.onSocketClose = function (session, code, reason) {
     session.eachChannel(function (gid) {
         self.quitChannel(session, gid);
     });
-    self.logger.info('onSocketClose:', session.uid, code, reason);
+    self.logger.info('onSocketClose:', session.id, session.uid, code, reason);
 };
 Router.prototype.onSocketError = function (session, error) {
     const self = this;
@@ -108,7 +108,10 @@ Router.prototype.onSocketError = function (session, error) {
         self.quitChannel(session, gid);
     });
     session.socket.terminate();//强制关闭连接
-    self.logger.error('onSocketError:', session.uid, error);
+    self.logger.error('onSocketError:', session.id, session.uid, error);
+};
+Router.prototype.onSocketTimeout = function (session, timeout) {
+
 };
 Router.prototype.onServerHeart = function (timeout) {
     const self = this;
@@ -116,11 +119,13 @@ Router.prototype.onServerHeart = function (timeout) {
         self.handler.onServerHeart(timeout);
     }
     //关闭全部的超时未收到心跳包的连接
+    let totalCnt = 0;
     let aliveCnt = 0;
     self.app.wssapp.clients.forEach(function (socket) {
         let session = socket.session;
+        totalCnt++;
         if (session.isExpired(timeout)) {
-            self.logger.info('Session closed by timeout:', session.uid);
+            self.logger.info('Session closed by timeout:', session.id, session.uid);
             //退出已加入的所有分组
             session.eachChannel(function (gid) {
                 self.quitChannel(session, gid);
@@ -129,7 +134,7 @@ Router.prototype.onServerHeart = function (timeout) {
         }
         aliveCnt++;
     });
-    self.logger.trace('onServerHeart: alive count is', aliveCnt);
+    self.logger.trace('onServerHeart:', 'totalCnt =', totalCnt + ', aliveCnt =', aliveCnt + ', channels =', self.channel);
 };
 Router.prototype.response = function (session, pack, message) {
     const self = this;
@@ -139,7 +144,7 @@ Router.prototype.response = function (session, pack, message) {
         message: message
     });
     session.socket.send(json);
-    self.logger.debug('response:', session.uid, json.length, '->', json);
+    self.logger.debug('response:', session.id, session.uid, json.length, 'bytes ->', json);
 };
 Router.prototype.pushData = function (session, route, message) {
     const self = this;
@@ -149,28 +154,28 @@ Router.prototype.pushData = function (session, route, message) {
     });
     session.socket.send(json);
     if (route === HEARTICK) {
-        self.logger.trace('pushData:', json.length, '->', json);
+        self.logger.trace('pushData:', session.id, session.uid, json.length, 'bytes ->', json);
     } else {
-        self.logger.debug('pushData:', json.length, '->', json);
+        self.logger.debug('pushData:', session.id, session.uid, json.length, 'bytes ->', json);
     }
 };
 Router.prototype.joinChannel = function (session, gid) {
     const self = this;
     const group = self.channel[gid] || {count: 0, clients: {}};
-    if (!group.clients[session.uid]) {
-        group.clients[session.uid] = session;
+    if (!group.clients[session.id]) {
+        group.clients[session.id] = session;
         group.count++;
         session.joinChannel(gid);
     }
     self.channel[gid] = group;
-    self.logger.debug('joinChannel:', gid, session.uid);
+    self.logger.debug('joinChannel:', gid, session.id, session.uid);
     self.logger.trace('joinChannel', self.channel, session.channel);
 };
 Router.prototype.quitChannel = function (session, gid) {
     const self = this;
     const group = self.channel[gid] || {count: 0, clients: {}};
-    if (group.clients[session.uid]) {
-        delete group.clients[session.uid];
+    if (group.clients[session.id]) {
+        delete group.clients[session.id];
         group.count--;
         session.quitChannel(gid);
     }
@@ -179,7 +184,7 @@ Router.prototype.quitChannel = function (session, gid) {
     } else {
         delete self.channel[gid];
     }
-    self.logger.debug('quitChannel:', gid, session.uid);
+    self.logger.debug('quitChannel:', gid, session.id, session.uid);
     self.logger.trace('quitChannel', self.channel, session.channel);
 };
 Router.prototype.deleteChannel = function (gid) {
@@ -205,7 +210,7 @@ Router.prototype.pushChannel = function (gid, route, message) {
     for (let key in group.clients) {
         group.clients[key].socket.send(json);
     }
-    self.logger.debug('pushChannel:', gid, json.length, '->', json);
+    self.logger.debug('pushChannel:', gid, json.length, 'byte ->', json);
 };
 Router.prototype.broadcast = function (route, message) {
     const self = this;
@@ -218,7 +223,7 @@ Router.prototype.broadcast = function (route, message) {
             socket.send(json);
         }
     });
-    self.logger.debug('broadcast:', json.length, '->', json);
+    self.logger.debug('broadcast:', json.length, 'bytes ->', json);
 };
 /**
  * @param app
