@@ -58,11 +58,7 @@ Router.prototype.onSocketData = function (session, json) {
         });
         return;
     }
-    if (self.handler.onSocketData) {
-        //路由对象自定义了路由规则
-        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
-        self.handler.onSocketData(session, pack);
-    } else if (pack.route.indexOf('$_') === 0) {
+    if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
         self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
@@ -89,8 +85,8 @@ Router.prototype.onSocketData = function (session, json) {
 };
 Router.prototype.onSocketClose = function (session, code, reason) {
     const self = this;
-    if (self.handler.onSocketClose) {
-        self.handler.onSocketClose(session, code, reason);
+    if (self.handler.$_onSocketClose) {
+        self.handler.$_onSocketClose(session, code, reason);
     }
     //退出已加入的所有分组
     session.eachChannel(function (gid) {
@@ -100,8 +96,8 @@ Router.prototype.onSocketClose = function (session, code, reason) {
 };
 Router.prototype.onSocketError = function (session, error) {
     const self = this;
-    if (self.handler.onSocketError) {
-        self.handler.onSocketError(session, error);
+    if (self.handler.$_onSocketError) {
+        self.handler.$_onSocketError(session, error);
     }
     //退出已加入的所有分组
     session.eachChannel(function (gid) {
@@ -112,8 +108,8 @@ Router.prototype.onSocketError = function (session, error) {
 };
 Router.prototype.onSocketTimeout = function (session, timeout) {
     const self = this;
-    if (self.handler.onSocketTimeout) {
-        self.handler.onSocketTimeout(session, timeout);
+    if (self.handler.$_onSocketTimeout) {
+        self.handler.$_onSocketTimeout(session, timeout);
     }
     //退出已加入的所有分组
     session.eachChannel(function (gid) {
@@ -124,8 +120,8 @@ Router.prototype.onSocketTimeout = function (session, timeout) {
 };
 Router.prototype.onServerHeart = function (heart, timeout) {
     const self = this;
-    if (self.handler.onServerHeart) {
-        self.handler.onServerHeart(heart, timeout);
+    if (self.handler.$_onServerHeart) {
+        self.handler.$_onServerHeart(heart, timeout);
     }
     //关闭全部的超时未收到心跳包的连接
     let totalCnt = 0;
