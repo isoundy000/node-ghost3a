@@ -8,8 +8,9 @@ const Router = function (app) {
     this.logger = app.getLogger('router', __filename);
     this.handler = {};//自定义路由
     this.channel = {};//客户端分组
+    this.ticker = null;//心跳检测器
 };
-Router.prototype.start = function (hander) {
+Router.prototype.start = function (hander, heart, timeout) {
     const self = this;
     self.handler = hander || self.handler;
     self.app.wssapp.on('connection', function (socket, request) {
@@ -30,7 +31,19 @@ Router.prototype.start = function (hander) {
         });
         self.logger.info('on connection', session.ip);
     });
+    if (heart > 0) {
+        self.ticker = setInterval(function () {
+            self.onServerHeart(timeout);
+        }, heart);
+    }
     self.logger.info('router startup success.');
+};
+Router.prototype.destroy = function () {
+    const self = this;
+    if (self.ticker) {
+        clearInterval(self.ticker);
+        self.ticker = null;
+    }
 };
 Router.prototype.onSocketData = function (session, json) {
     const self = this;
@@ -63,6 +76,7 @@ Router.prototype.onSocketData = function (session, json) {
     } else if (pack.route === HEARTICK) {
         //心跳包
         self.logger.trace('onSocketData:', session.uid, json.length, '->', json);
+        session.resetHeart();//更新最近心跳时间
         self.pushData(session, HEARTICK, pack.message);
     } else {
         //无路由
@@ -89,12 +103,33 @@ Router.prototype.onSocketError = function (session, error) {
     if (self.handler.onSocketError) {
         self.handler.onSocketError(session, error);
     }
-    //此处close()操作不确定是否能触发close事件，所以先执行一次quit操作
+    //退出已加入的所有分组
     session.eachChannel(function (gid) {
         self.quitChannel(session, gid);
     });
-    session.socket.close();
+    session.socket.terminate();//强制关闭连接
     self.logger.error('onSocketError:', session.uid, error);
+};
+Router.prototype.onServerHeart = function (timeout) {
+    const self = this;
+    if (self.handler.onServerHeart) {
+        self.handler.onServerHeart(timeout);
+    }
+    //关闭全部的超时未收到心跳包的连接
+    let aliveCnt = 0;
+    self.app.wssapp.clients.forEach(function (socket) {
+        let session = socket.session;
+        if (session.isExpired(timeout)) {
+            self.logger.info('Session closed by timeout:', session.uid);
+            //退出已加入的所有分组
+            session.eachChannel(function (gid) {
+                self.quitChannel(session, gid);
+            });
+            return session.socket.terminate();//强制关闭连接
+        }
+        aliveCnt++;
+    });
+    self.logger.trace('onServerHeart: alive count is', aliveCnt);
 };
 Router.prototype.response = function (session, pack, message) {
     const self = this;
@@ -178,7 +213,7 @@ Router.prototype.broadcast = function (route, message) {
         route: route,
         message: message
     });
-    self.app.wssapp.clients.forEach(function each(socket) {
+    self.app.wssapp.clients.forEach(function (socket) {
         if (socket.readyState === 1) {
             socket.send(json);
         }

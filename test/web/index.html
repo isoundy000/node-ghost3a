@@ -30,7 +30,7 @@
     var reqId = 0;
 
     function onOpenWss() {
-        client = new WebSocket("ws://localhost:8081/");
+        client = new WebSocket("ws://192.168.31.229:8081/");
         client.onopen = function (event) {
             console.log("onopen ...");
         };

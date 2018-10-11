@@ -71,9 +71,10 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
             },
             onBeClose: function (session, pack) {
                 router.pushData(session, 'onBeClose', "即将被动关闭");
-                session.socket.close();
+                // session.socket.close();
+                session.socket.terminate();
             }
-        });
+        }, 3000, 10000);
     });
 });
 // app.printInfo(true, true);
