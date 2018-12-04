@@ -1,4 +1,5 @@
 "use strict";
+const WebSocket = require('ws');
 const Session = require('./session');
 const HEARTICK = '$heartick$';
 const RESPONSE = '$response$';
@@ -33,7 +34,11 @@ Router.prototype.start = function (hander, heart, timeout) {
     });
     if (heart > 0) {
         self.ticker = setInterval(function () {
-            self.onServerHeart(heart, timeout);
+            try {
+                self.onServerHeart(heart, timeout);
+            } catch (e) {
+                self.logger.error('未处理的心跳异常：', e);
+            }
         }, heart);
     }
     self.logger.info('router startup success.');
@@ -128,8 +133,8 @@ Router.prototype.onServerHeart = function (heart, timeout) {
     let aliveCnt = 0;
     self.app.wssapp.clients.forEach(function (socket) {
         totalCnt++;
-        if (socket.session.isExpired(timeout)) {
-            self.onSocketTimeout(socket.session, timeout);
+        if (socket.$session.isExpired(timeout)) {
+            self.onSocketTimeout(socket.$session, timeout);
         } else {
             aliveCnt++;
         }
@@ -143,7 +148,9 @@ Router.prototype.response = function (session, pack, message) {
         reqId: pack.reqId,
         message: message
     });
-    session.socket.send(json);
+    if (session.socket.readyState === WebSocket.OPEN) {
+        session.socket.send(json);
+    }
     self.logger.debug('response:', session.id, session.uid, json.length, 'bytes ->', json);
 };
 Router.prototype.pushData = function (session, route, message) {
@@ -152,7 +159,9 @@ Router.prototype.pushData = function (session, route, message) {
         route: route,
         message: message
     });
-    session.socket.send(json);
+    if (session.socket.readyState === WebSocket.OPEN) {
+        session.socket.send(json);
+    }
     if (route === HEARTICK) {
         self.logger.trace('pushData:', session.id, session.uid, json.length, 'bytes ->', json);
     } else {
@@ -208,7 +217,9 @@ Router.prototype.pushChannel = function (gid, route, message) {
         message: message
     });
     for (let key in group.clients) {
-        group.clients[key].socket.send(json);
+        if (group.clients[key].socket.readyState === WebSocket.OPEN) {
+            group.clients[key].socket.send(json);
+        }
     }
     self.logger.debug('pushChannel:', gid, json.length, 'byte ->', json);
 };
@@ -218,12 +229,16 @@ Router.prototype.broadcast = function (route, message) {
         route: route,
         message: message
     });
+    let total = 0;
+    let count = 0;
     self.app.wssapp.clients.forEach(function (socket) {
-        if (socket.readyState === 1) {
+        total++;
+        if (socket.readyState === WebSocket.OPEN) {
             socket.send(json);
+            count++;
         }
     });
-    self.logger.debug('broadcast:', json.length, 'bytes ->', json);
+    self.logger.debug('broadcast:' + count + '/' + total, json.length, 'bytes ->', json);
 };
 /**
  * @param app

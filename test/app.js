@@ -73,7 +73,17 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
                 router.pushData(session, 'onBeClose', "即将被动关闭");
                 // session.socket.close();
                 session.socket.terminate();
-            }
+            },
+            $_onServerHeart: function () {
+                //同步发生的异常会被router.js捕获
+                // let a;
+                // a.b;
+                //异步发生的异常会被app.js捕获
+                // setTimeout(function () {
+                //     let a;
+                //     a.b;
+                // }, 100);
+            },
         }, 3000, 10000);
     });
 });
@@ -82,5 +92,5 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃
  */
 process.on('uncaughtException', function (err) {
-    app.logger.error('uncaughtException exception: ' + err.stack);
+    app.logger.error('未处理的执行异常: ' + err.stack);
 });

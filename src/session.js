@@ -8,7 +8,7 @@ const Session = function (socket, ip) {
     this.context = {};//缓存的自定义数据
     this.channel = {};//加入的自定义群组
     this.hearted = Date.now();//最近收到心跳包的时间
-    this.socket.session = this;//绑定本实例到socket
+    this.socket.$session = this;//绑定本实例到socket
 };
 Session.prototype.bindUid = function (uid) {
     this.uid = uid;
