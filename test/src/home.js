@@ -4,8 +4,8 @@ const Handler = function (app, router, servers) {
     this.router = router;
     this.servers = servers;
     this.logger = app.getLogger('router', __filename);
-
-    router.start(this, 60000, 60000 * 2);
+    //启动路由监听
+    router.start(this, 10000, 60000 * 2);
 };
 Handler.prototype.onLogin = function (session, pack) {
     session.bindUid(pack.message.uid);

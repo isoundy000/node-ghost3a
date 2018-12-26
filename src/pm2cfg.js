@@ -1,10 +1,12 @@
 "use strict";
 const fs = require('fs');
 const path = require("path");
-const Pm2cfg = function (processArgv, bootfile, configfile) {
+const Pm2cfg = function (processArgv, bootfile, configfile, debug) {
+    this.debug = debug;
     this.env = processArgv[processArgv.length - 1];//最后一个参数是运行环境类型
     this.dir = path.dirname(bootfile);
     this.data = JSON.parse(fs.readFileSync(this.dir + configfile, 'utf8'));
+    if (this.debug) console.log(this.env, this.dir);
 };
 
 Pm2cfg.prototype.getPm2Apps = function () {
@@ -39,6 +41,7 @@ Pm2cfg.prototype.getPm2Apps = function () {
             res.push(inst);
         }
     }
+    if (this.debug) console.log(res);
     return res;
 };
 
@@ -48,9 +51,10 @@ module.exports = {
      * @param processArgv 进程启动命令参数列表
      * @param bootfile PM2启动文件ecosystem.config.js的路径
      * @param configfile 服务器配置文件相对路径
+     * @param debug 是否打印调试信息
      * @returns {Pm2cfg} 类实例
      */
-    create: function (processArgv, bootfile, configfile) {
-        return new Pm2cfg(processArgv, bootfile, configfile);
+    create: function (processArgv, bootfile, configfile, debug) {
+        return new Pm2cfg(processArgv, bootfile, configfile, debug);
     }
 };
