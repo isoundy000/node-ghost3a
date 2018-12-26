@@ -4,12 +4,29 @@
       {
         "host": "localhost",
         "port": "8081",
-        "inip": "127.0.0.1"
+        "inip": "127.0.0.1",
+        "link": [
+          "home",
+          "other"
+        ]
       },
       {
         "host": "localhost",
         "port": "8082",
-        "inip": "127.0.0.1"
+        "inip": "127.0.0.1",
+        "link": [
+          "home"
+        ]
+      }
+    ],
+    "other": [
+      {
+        "host": "localhost",
+        "port": "8083"
+      },
+      {
+        "host": "localhost",
+        "port": "8084"
       }
     ]
   },
@@ -18,12 +35,28 @@
       {
         "host": "lan.ghostaaa.com",
         "port": "8081",
-        "inip": "127.0.0.1"
+        "inip": "127.0.0.1",
+        "link": [
+          "home"
+        ]
       },
       {
         "host": "lan.ghostaaa.com",
         "port": "8082",
-        "inip": "127.0.0.1"
+        "inip": "127.0.0.1",
+        "link": [
+          "home"
+        ]
+      }
+    ],
+    "other": [
+      {
+        "host": "lan.ghostaaa.com",
+        "port": "8083"
+      },
+      {
+        "host": "lan.ghostaaa.com",
+        "port": "8084"
       }
     ]
   },

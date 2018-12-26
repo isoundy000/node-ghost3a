@@ -4,8 +4,10 @@ const Session = require('./session');
 const HEARTICK = '$heartick$';
 const RESPONSE = '$response$';
 const NOSYNTAX = '$nosyntax$';
-const Router = function (app) {
+const Router = function (app, link, sevs) {
     this.app = app;
+    this.link = link;
+    this.sevs = sevs;
     this.logger = app.getLogger('router', __filename);
     this.handler = {};//自定义路由
     this.channel = {};//客户端分组
@@ -242,8 +244,10 @@ Router.prototype.broadcast = function (route, message) {
 };
 /**
  * @param app
+ * @param link
+ * @param sevs
  * @returns {Router}
  */
-module.exports = function (app) {
-    return new Router(app);
+module.exports = function (app, link, sevs) {
+    return new Router(app, link, sevs);
 };
