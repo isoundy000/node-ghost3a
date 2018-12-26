@@ -5,7 +5,7 @@ const Handler = function (app, router, servers) {
     this.servers = servers;
     this.logger = app.getLogger('router', __filename);
     //启动路由监听
-    router.start(this, 10000, 60000 * 2);
+    router.start(this, 3000, 30000);
 };
 Handler.prototype.onLogin = function (session, pack) {
     session.bindUid(pack.message.uid);

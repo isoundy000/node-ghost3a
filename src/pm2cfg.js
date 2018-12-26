@@ -48,6 +48,7 @@ Pm2cfg.prototype.getPm2Apps = function () {
                 host: item.host,
                 inip: item.inip || '',
                 port: item.port,
+                ssls: pro.ssls[this.env].indexOf(key) >= 0
             });
             apps.push(inst);
         }

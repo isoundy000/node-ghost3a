@@ -6,8 +6,7 @@
         "port": "8081",
         "inip": "127.0.0.1",
         "link": [
-          "home",
-          "other"
+          "home"
         ]
       },
       {
@@ -61,6 +60,10 @@
     ]
   },
   "project": {
-    "name": "test"
+    "name": "test",
+    "ssls": {
+      "development": [],
+      "production": []
+    }
   }
 }
