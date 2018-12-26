@@ -37,7 +37,7 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
         });
     });
 });
-// app.logger.info('运行环境:', ENV.NODE_ENV, ENV.MYAPP_NAME, ENV.MYAPP_HOST, ENV.MYAPP_PORT, ENV.MYAPP_LINK, ENV.MYAPP_SEVS);
+app.logger.info('运行环境:', ENV.NODE_ENV, ENV.MYAPP_NAME, ENV.MYAPP_HOST, ENV.MYAPP_PORT, ENV.MYAPP_LINK, ENV.MYAPP_SEVS);
 // app.printInfo(true, true);
 /**
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃
