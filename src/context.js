@@ -8,12 +8,11 @@ const websocket = require('ws');
 const fs = require('fs');
 const crypto = require('crypto');
 const logx4js = require('./logx4js');
-const Context = function (base, env, name, port, pmid) {
+const Context = function (base, env, name, port) {
     this.base = path.dirname(base);
     this.env = env;
     this.name = name;
     this.port = port;
-    this.pmid = pmid;
     this.config = {
         serverConfig: {
             ssl: false,
@@ -39,7 +38,6 @@ Context.prototype.loadLogx4js = function (filepath) {
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:base\\}', 'gm'), this.getBase());
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:name\\}', 'gm'), this.name);
     logStr = logStr.replace(new RegExp('\\$\\{opts\\:port\\}', 'gm'), this.port);
-    logStr = logStr.replace(new RegExp('\\$\\{opts\\:pmid\\}', 'gm'), this.pmid);
     this.logcfg = JSON.parse(logStr)[this.env];
     logx4js.configure(this.logcfg);
     this.logger = this.getLogger('context', __filename);
@@ -70,8 +68,7 @@ Context.prototype.getLogger = function (category, filepath) {
         base: this.base,
         env: this.env,
         name: this.name,
-        port: this.port,
-        pmid: this.pmid
+        port: this.port
     });
 };
 Context.prototype.getBase = function () {
@@ -286,8 +283,7 @@ Context.prototype.printInfo = function (printConfig, printLogCfg) {
         base: this.base,
         env: this.env,
         name: this.name,
-        port: this.port,
-        pmid: this.pmid
+        port: this.port
     }, null, 2));
     if (printConfig) {
         this.logger.info('context config ->\n', JSON.stringify(this.config, null, 2));
@@ -304,10 +300,9 @@ module.exports = {
      * @param env 服务器环境类型（如：development、production等自由定义）
      * @param name 服务器名称（如：master、slave等自由定义）
      * @param port 服务器端口号
-     * @param pmid 服务器ID
      * @returns {Context} 类实例
      */
-    create: function (base, env, name, port, pmid) {
-        return new Context(base, env, name, port, pmid);
+    create: function (base, env, name, port) {
+        return new Context(base, env, name, port);
     }
 };

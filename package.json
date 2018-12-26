@@ -5,8 +5,7 @@
   "description": "web服务器集成框架、websocket服务器集成框架",
   "main": "ghost3a.js",
   "scripts": {
-    "development": "node ./test/app.js development test 8081",
-    "production": "node ./test/app.js production test 8081"
+    "test": "echo \"温馨提示: 请使用pm2来启动测试案例！\" && exit 1"
   },
   "repository": {
     "type": "git",

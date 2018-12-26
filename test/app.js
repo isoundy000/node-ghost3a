@@ -1,12 +1,13 @@
 "use strict";
 const ghost3a = require('../ghost3a');
 const access = require('./access');
+const myhome = require('./src/home');
 /**
  * 初始化
  */
-const app = ghost3a.context.create(__filename, process.argv[2], process.argv[3], process.argv[4], '0');
-app.loadLogx4js(app.getBase() + '/config/logx4js.json');//最先调用以便输出后续步骤的日志
-app.loadConfig('mongoConfig', app.getBase() + '/config/mongo.json');
+const app = ghost3a.context.create(__filename, process.env.NODE_ENV, process.env.MYAPP_NAME, process.env.MYAPP_PORT);
+app.loadLogx4js(app.getBase() + '/cfgs/logx4js.json');//最先调用以便输出后续步骤的日志
+app.loadConfig('mongoConfig', app.getBase() + '/cfgs/mongo.json');
 app.configure('development|production', function () {
     app.set('serverConfig', {
         wss: true,
@@ -22,71 +23,20 @@ app.configure('production', function () {
     app.set('maxAge', '2h');
 });
 ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
-    console.log(mongo.formatDate(new Date(mongo.getDayStart(new Date(), 0)), 'yyyy-MM-dd HH:mm:ss'), mongo.getDayStart(new Date(), 0));
-    console.log(mongo.formatDate(new Date(mongo.getMonthStart(new Date(), 0)), 'yyyy-MM-dd HH:mm:ss'), mongo.getMonthStart(new Date(), 0));
-    console.log(mongo.formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss'), new Date(), new Date().toLocaleString());
-    mongo.insertOneDoc('test', {time: Date.now()});
-    mongo.countDocs('test', {}, null, function (n) {
-        app.logger.info('test count:', n);
-    });
-    mongo.findManyDocs('test', {}, null, {}, 0, 100, null, function (docs, total) {
-        app.logger.info('test total:', total);
-    });
     app.start(mongo, access, function () {
         //加载静态资源
         app.configure('development|production', function () {
-            app.webapp.use('/', app.express.static('./test/web', {
-                maxAge: app.get('maxAge')
-            }));
-            app.webapp.use('/files', app.express.static('./test/files', {
-                maxAge: app.get('maxAge')
-            }));
+            app.webapp.use('/', app.express.static('./test/web', {maxAge: app.get('maxAge')}));
+            app.webapp.use('/files', app.express.static('./test/files', {maxAge: app.get('maxAge')}));
         });
     }, function () {
         //加载逻辑接口
-        const router = ghost3a.router(app);
-        router.start({
-            onLogin: function (session, pack) {
-                session.bindUid(pack.message.uid);
-                router.response(session, pack, '登录成功');
-            },
-            onJoinRoom: function (session, pack) {
-                router.joinChannel(session, pack.message.rid);
-                router.response(session, pack, '进入房间成功');
-            },
-            onQuitRoom: function (session, pack) {
-                router.quitChannel(session, pack.message.rid);
-                router.response(session, pack, '退出房间成功');
-            },
-            onPushRoom: function (session, pack) {
-                router.pushChannel(pack.message.rid, 'onPushRoom', '大家好' + new Date());
-            },
-            onDeleteRoom: function (session, pack) {
-                router.pushChannel(pack.message.rid, 'onDeleteRoom', '删除前置');
-                router.deleteChannel(pack.message.rid);
-                router.pushChannel(pack.message.rid, 'onDeleteRoom', '删除后置');
-            },
-            onBroadcast: function (session, pack) {
-                router.broadcast('onBroadcast', '大家好' + new Date());
-            },
-            onBeClose: function (session, pack) {
-                router.pushData(session, 'onBeClose', "即将被动关闭");
-                // session.socket.close();
-                session.socket.terminate();
-            },
-            $_onServerHeart: function () {
-                //同步发生的异常会被router.js捕获
-                // let a;
-                // a.b;
-                //异步发生的异常会被app.js捕获
-                // setTimeout(function () {
-                //     let a;
-                //     a.b;
-                // }, 100);
-            },
-        }, 3000, 10000);
+        app.configure('development|production', 'home', function () {
+            myhome(app, ghost3a.router(app));
+        });
     });
 });
+app.logger.info('运行环境:', process.env.NODE_ENV, process.env.MYAPP_NAME, process.env.MYAPP_HOST, process.env.MYAPP_PORT);
 // app.printInfo(true, true);
 /**
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃

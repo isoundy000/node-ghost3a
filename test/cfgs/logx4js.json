@@ -5,12 +5,12 @@
         "type": "stdout",
         "layout": {
           "type": "pattern",
-          "pattern": "%[[%d] [%p] %c - %X{file}:%X{line} [%X{name}-%X{pmid}]%] %m"
+          "pattern": "%[[%d] [%p] %c - %X{file}:%X{line} [%X{name}-%X{port}]%] %m"
         }
       },
       "context": {
         "type": "file",
-        "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}.log",
         "maxLogSize": 8388608,
         "layout": {
           "type": "basic"
@@ -19,7 +19,7 @@
       },
       "mongo": {
         "type": "file",
-        "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}.log",
         "maxLogSize": 8388608,
         "layout": {
           "type": "basic"
@@ -28,7 +28,7 @@
       },
       "router": {
         "type": "file",
-        "filename": "${opts:base}/logs/router-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "filename": "${opts:base}/logs/router-${opts:name}-${opts:port}.log",
         "maxLogSize": 8388608,
         "layout": {
           "type": "basic"
@@ -65,6 +65,8 @@
         "level": "trace"
       }
     },
+    "pm2": true,
+    "disableClustering": true,
     "lineDebug": true
   },
   "production": {
@@ -73,12 +75,12 @@
         "type": "stdout",
         "layout": {
           "type": "pattern",
-          "pattern": "%[[%d] [%p] %c - %X{file}:%X{line} [%X{name}-%X{pmid}]%] %m"
+          "pattern": "%[[%d] [%p] %c - %X{file}:%X{line} [%X{name}-%X{port}]%] %m"
         }
       },
       "context": {
         "type": "file",
-        "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "filename": "${opts:base}/logs/context-${opts:name}-${opts:port}.log",
         "maxLogSize": 8388608,
         "layout": {
           "type": "basic"
@@ -87,7 +89,7 @@
       },
       "mongo": {
         "type": "file",
-        "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "filename": "${opts:base}/logs/mongo-${opts:name}-${opts:port}.log",
         "maxLogSize": 8388608,
         "layout": {
           "type": "basic"
@@ -96,7 +98,7 @@
       },
       "router": {
         "type": "file",
-        "filename": "${opts:base}/logs/router-${opts:name}-${opts:port}-${opts:pmid}.log",
+        "filename": "${opts:base}/logs/router-${opts:name}-${opts:port}.log",
         "maxLogSize": 8388608,
         "layout": {
           "type": "basic"
@@ -130,6 +132,8 @@
         "level": "debug"
       }
     },
-    "lineDebug": true
+    "pm2": true,
+    "disableClustering": true,
+    "lineDebug": false
   }
 }

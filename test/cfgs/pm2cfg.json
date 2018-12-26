@@ -1,0 +1,33 @@
+{
+  "development": {
+    "home": [
+      {
+        "host": "localhost",
+        "port": "8081",
+        "inip": "127.0.0.1"
+      },
+      {
+        "host": "localhost",
+        "port": "8082",
+        "inip": "127.0.0.1"
+      }
+    ]
+  },
+  "production": {
+    "home": [
+      {
+        "host": "lan.ghostaaa.com",
+        "port": "8081",
+        "inip": "127.0.0.1"
+      },
+      {
+        "host": "lan.ghostaaa.com",
+        "port": "8082",
+        "inip": "127.0.0.1"
+      }
+    ]
+  },
+  "project": {
+    "name": "test"
+  }
+}
