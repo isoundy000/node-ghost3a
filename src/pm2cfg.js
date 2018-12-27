@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const Pm2cfg = function (processArgv, bootfile, configfile, debug) {
     this.debug = debug;
-    this.env = processArgv[processArgv.length - 1];//最后一个参数是运行环境类型
+    this.env = processArgv[processArgv.length - 1];//最后一个参数是应用环境类型
     this.dir = path.dirname(bootfile);
     this.data = JSON.parse(fs.readFileSync(this.dir + configfile, 'utf8'));
     if (this.debug) console.log(this.env, this.dir);
@@ -36,7 +36,8 @@ Pm2cfg.prototype.getPm2Apps = function () {
             };
             //app进行属性
             inst['env_' + this.env] = {
-                NODE_ENV: this.env === 'development' ? this.env : 'production',//nodejs环境类型
+                NODE_ENV: this.env === 'development' ? this.env : 'production',//nodejs运行环境
+                MYAPP_ENV: this.env,//应用运行环境
                 MYAPP_NAME: key,//分组类型
                 MYAPP_HOST: item.host,//外网地址
                 MYAPP_PORT: item.port,//端口号码

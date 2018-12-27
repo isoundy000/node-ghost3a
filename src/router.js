@@ -98,6 +98,7 @@ Router.prototype.onSocketData = function (session, json) {
     } else if (pack.route === INNERP2P) {
         //P2P包
         self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        if (self.clients[pack.$uid$]) self.pushData(self.clients[pack.$uid$], pack.$route$, pack.message);
     } else {
         //无路由
         self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);

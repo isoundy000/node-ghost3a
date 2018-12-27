@@ -6,7 +6,7 @@ const myhome = require('./src/home');
 /**
  * 初始化
  */
-const app = ghost3a.context.create(__filename, ENV.NODE_ENV, ENV.MYAPP_NAME, ENV.MYAPP_PORT);
+const app = ghost3a.context.create(__filename, ENV.MYAPP_ENV, ENV.MYAPP_NAME, ENV.MYAPP_PORT);
 app.loadLogx4js(app.getBase() + '/cfgs/logx4js.json');//最先调用以便输出后续步骤的日志
 app.loadConfig('mongoConfig', app.getBase() + '/cfgs/mongo.json');
 app.configure('development|production', function () {
@@ -37,7 +37,6 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
         });
     });
 });
-app.logger.info('运行环境:', ENV.NODE_ENV, ENV.MYAPP_NAME, ENV.MYAPP_HOST, ENV.MYAPP_PORT, ENV.MYAPP_LINK, ENV.MYAPP_SEVS);
 // app.printInfo(true, true);
 /**
  * uncaughtException 捕获所有未处理的异常, 避免程序崩溃

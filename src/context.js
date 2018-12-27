@@ -148,7 +148,7 @@ Context.prototype.start = function (mongo, access, onLoadModule, onRegisterApi) 
         onRegisterApi.call(this);//加载自定义接口
     }
     server.listen(this.port, function () {
-        logger.info('server', self.port, 'is listening...');
+        logger.info(self.env, 'server', self.port, 'is listening...');
     });
 };
 Context.prototype.registerUpload = function () {
