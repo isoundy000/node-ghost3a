@@ -2,8 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 const Pm2cfg = function (processArgv, bootfile, configfile, logLevel) {
+    const envIndex = processArgv.indexOf('--env');
+    if (envIndex < 0 || envIndex === processArgv.length - 1) return;
     this.logLevel = logLevel;
-    this.env = processArgv[processArgv.length - 1];//最后一个参数是应用环境类型
+    this.env = processArgv[envIndex + 1];//--env参数后面的值是运行环境类型
     this.dir = path.dirname(bootfile);
     this.data = JSON.parse(fs.readFileSync(this.dir + configfile, 'utf8'));
     if (this.logLevel > 0) console.log('env:', this.env);
@@ -11,13 +13,10 @@ const Pm2cfg = function (processArgv, bootfile, configfile, logLevel) {
 };
 
 Pm2cfg.prototype.getPm2Apps = function () {
-    if (this.env === 'project') {
-        return null;
-    }
+    if (!this.env) throw Error('启动命令: pm2 start ecosystem.config.js --env xxxxxxxx');
+    if (this.env === 'project') return null;
     const cfg = this.data[this.env];
-    if (!cfg) {
-        return null;
-    }
+    if (!cfg) return null;
     const pro = this.data['project'] || {};
     const apps = [];
     const sevs = {};
