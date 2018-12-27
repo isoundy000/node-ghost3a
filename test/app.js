@@ -11,10 +11,13 @@ app.loadLogx4js(app.getBase() + '/cfgs/logx4js.json');//最先调用以便输出
 app.loadConfig('mongoConfig', app.getBase() + '/cfgs/mongo.json');
 app.configure('development|production', function () {
     app.set('serverConfig', {
-        wss: true,
-        webGzip: true,
-        webApiRoot: '/test',
-        webCookieKey: '1234567890'
+        ssl: false,//如有ssl证书则为 ssl:{key:xxxx,cert:xxxx}
+        wss: true,//创建websocket服务器，不需要websocket服务器则传fasle，可传对象来进行定制（对象属性请参考依赖库https://github.com/websockets/ws）
+        webGzip: true,//web请求开启gzip压缩，不需要压缩则传false，可传对象来进行定制（对象属性请参考依赖库https://github.com/expressjs/compression）
+        webApiRoot: '/test',//web接口的前缀
+        webCookieKey: '1234567890'//cookie的加密口令，不需要加密则传false
+        // webUploadDir:'上传文件保存的绝对路径'
+        // webUploadMax:'上传文件允许的最大字节'
     });
 });
 app.configure('development', function () {

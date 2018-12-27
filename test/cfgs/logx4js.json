@@ -62,7 +62,7 @@
           "stdout",
           "router"
         ],
-        "level": "debug"
+        "level": "trace"
       }
     },
     "pm2": true,

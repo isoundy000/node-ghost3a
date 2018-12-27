@@ -6,9 +6,12 @@ const Handler = function (app, router) {
     this.app = app;
     this.router = router;
     this.logger = app.getLogger('router', __filename);
-    //启动路由监听
-    // router.start(this, 60000, 60000 * 2);
-    router.start(this, 3000, 10000);
+    //加载web接口
+    app.webapp.all(app.config.serverConfig.webApiRoot + '/user/login', function (request, response) {
+        response.json({code: 200, data: Date.now()});
+    });
+    //启动websocket路由监听
+    router.start(this, 60000, 60000 * 2);
 };
 Handler.prototype.onLogin = function (session, pack) {
     this.router.bindUid(session, pack.message.uid);
@@ -47,6 +50,8 @@ Handler.prototype.onBridgePushAll = function (session, pack) {
     this.router.bridgesPushAll('home', ROUTE_GRP_ALL, pack.message.context);
 };
 Handler.prototype.$_onServerHeart = function () {
+    //TODO 此函数将按照心跳检测时间循环运行
+
     //同步发生的异常会被router.js捕获
     // let a;
     // a.b;

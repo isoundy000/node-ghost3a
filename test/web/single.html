@@ -25,6 +25,7 @@
 <button onclick="$_deny()">$_deny</button>
 <button onclick="norouter()">norouter</button>
 <button onclick="$heartick$()">$heartick$</button>
+<button onclick="webLogin()">web登录接口测试</button>
 <script>
     var client;
     var reqId = 0;
@@ -151,6 +152,10 @@
             reqId: reqId++,
             message: Date.now()
         }));
+    }
+
+    function webLogin() {
+        window.location.href = '/test/user/login';
     }
 </script>
 </body>
