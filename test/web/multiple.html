@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>多进程聊天室测试</title>
+    <style type="text/css">
+        .item {
+            font-size: 0.5em;
+            margin-top: 0.3em;
+            color: #000000;
+        }
+
+        .item_close {
+            font-size: 0.5em;
+            margin-top: 0.3em;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body style="padding: 1em">
+<div style="text-align: center">聊天内容</div>
+<div id="context"
+     style="border:1px solid #000; height: 10em; padding: 0.3em 0.5em; overflow-x: auto; overflow-y: auto;"></div>
+<div style="text-align: center; margin-top: 1em">发送内容</div>
+<textarea id="edit_context" style="width: 100%; height: 3em;"></textarea>
+<button onclick="doHeartbeat()">自动发送心跳包</button>
+<button onclick="doConnect()">连接服务器</button>
+<button onclick="doDisConnect()">断开服务器</button>
+<br/>
+<input type="text" width="10em" placeholder="输入uid" id="login_uid"/>
+<button onclick="doLogin()">登录服务器</button>
+<br/>
+<input type="text" width="10em" placeholder="输入gid" id="room_gid"/>
+<button onclick="doJoinRoom()">加入群组</button>
+<button onclick="doQuitRoom()">退出群组</button>
+<br/>
+<input type="text" width="10em" placeholder="输入uid" id="p2p_uid"/>
+<button onclick="doBridgesPushP2P()">发送p2p包</button>
+<br/>
+<input type="text" width="10em" placeholder="输入gid" id="grp_gid"/>
+<button onclick="doBridgesPushGrp()">发送grp包</button>
+<br/>
+<button onclick="doBridgesPushAll()">发送all包</button>
+<br/>
+<script>
+    var client = null;
+    var hearter = null;
+    var reqId = 0;
+    var context = document.getElementById("context");
+    var doHeartbeat = function () {
+        if (hearter) {
+            console.log('自动心跳包功能已经启动');
+        } else {
+            hearter = setInterval(function () {
+                if (client && client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        route: '$heartick$',
+                        reqId: reqId++,
+                        message: Date.now()
+                    }));
+                }
+            }, 5000);
+            var tag = document.createElement('div');
+            tag.className = 'item';
+            tag.innerHTML = new Date().toLocaleString() + '<br>' + '已经开启自动发送心跳包功能';
+            context.appendChild(tag);
+        }
+    };
+    var doConnect = function () {
+        if (client && client.readyState === WebSocket.OPEN) return;
+        client = new WebSocket("ws://" + location.host + "/");
+        client.onopen = function (event) {
+            var tag = document.createElement('div');
+            tag.className = 'item';
+            tag.innerHTML = new Date().toLocaleString() + '<br>' + '到' + location.host + '的连接已经建立';
+            context.appendChild(tag);
+        };
+        client.onmessage = function (event) {
+            console.log("onmessage: " + event.data);
+            var data = JSON.parse(event.data);
+            var tag = document.createElement('div');
+            switch (data.reqId) {
+                case -1:
+                    tag.className = 'item';
+                    tag.innerHTML = new Date().toLocaleString() + '<br>' + '登录成功';
+                    context.appendChild(tag);
+                    break;
+                case -2:
+                    tag.className = 'item';
+                    tag.innerHTML = new Date().toLocaleString() + '<br>' + '已经加入群';
+                    context.appendChild(tag);
+                    break;
+                default: {
+                    if (data.route === 'route_p2p_msg') {
+                        var tag = document.createElement('div');
+                        tag.className = 'item';
+                        tag.innerHTML = new Date().toLocaleString() + '<br>p2p消息: ' + data.message;
+                        context.appendChild(tag);
+                    } else if (data.route === 'route_grp_msg') {
+                        var tag = document.createElement('div');
+                        tag.className = 'item';
+                        tag.innerHTML = new Date().toLocaleString() + '<br>grp消息: ' + data.message;
+                        context.appendChild(tag);
+                    } else if (data.route === 'route_all_msg') {
+                        var tag = document.createElement('div');
+                        tag.className = 'item';
+                        tag.innerHTML = new Date().toLocaleString() + '<br>all消息: ' + data.message;
+                        context.appendChild(tag);
+                    }
+                }
+            }
+        };
+        client.onclose = function (event) {
+            var tag = document.createElement('div');
+            tag.className = 'item_close';
+            tag.innerHTML = new Date().toLocaleString() + '<br>' + '到' + location.host + '的连接已经断开';
+            context.appendChild(tag);
+            client = null;
+        };
+        client.onerror = function (event) {
+            client.close();
+            console.log(" onerror.", event);
+        }
+    };
+    var doDisConnect = function () {
+        if (!client) return;
+        client.close();
+        client = null;
+    };
+    var doLogin = function () {
+        if (!client) return;
+        client.send(JSON.stringify({
+            route: 'onLogin',
+            reqId: -1,
+            message: {
+                uid: document.getElementById('login_uid').value.trim()
+            }
+        }));
+    };
+    var doJoinRoom = function () {
+        if (!client) return;
+        client.send(JSON.stringify({
+            route: 'onJoinRoom',
+            reqId: -2,
+            message: {
+                rid: document.getElementById('room_gid').value.trim()
+            }
+        }));
+    };
+
+    var doQuitRoom = function () {
+        client.send(JSON.stringify({
+            route: 'onQuitRoom',
+            reqId: reqId++,
+            message: {
+                rid: document.getElementById('room_gid').value.trim()
+            }
+        }));
+    };
+
+    var doBridgesPushP2P = function () {
+        if (!client) return;
+        client.send(JSON.stringify({
+            route: 'onBridgePushP2P',
+            reqId: reqId++,
+            message: {
+                uid: document.getElementById('p2p_uid').value.trim(),
+                context: document.getElementById('edit_context').value.trim(),
+            }
+        }));
+    };
+
+    var doBridgesPushGrp = function () {
+        if (!client) return;
+        client.send(JSON.stringify({
+            route: 'onBridgePushGrp',
+            reqId: reqId++,
+            message: {
+                gid: document.getElementById('grp_gid').value.trim(),
+                context: document.getElementById('edit_context').value.trim(),
+            }
+        }));
+    };
+
+    var doBridgesPushAll = function () {
+        if (!client) return;
+        client.send(JSON.stringify({
+            route: 'onBridgePushAll',
+            reqId: reqId++,
+            message: {
+                context: document.getElementById('edit_context').value.trim(),
+            }
+        }));
+    };
+
+</script>
+</body>
+</html>

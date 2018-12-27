@@ -36,7 +36,7 @@ Pm2cfg.prototype.getPm2Apps = function () {
             };
             //app进行属性
             inst['env_' + this.env] = {
-                NODE_ENV: this.env === 'development' ? this.env : 'production',//nodejs运行环境
+                NODE_ENV: this.env === 'development' ? this.env : 'production',//nodejs运行环境(定义为production有利于提高性能)
                 MYAPP_ENV: this.env,//应用运行环境
                 MYAPP_NAME: key,//分组类型
                 MYAPP_HOST: item.host,//外网地址

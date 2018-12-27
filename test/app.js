@@ -27,7 +27,7 @@ ghost3a.mongodb.create(app.get('mongoConfig'), app, function (mongo) {
     app.start(mongo, access, function () {
         //加载静态资源
         app.configure('development|production', 'home', function () {
-            app.webapp.use('/', app.express.static('./test/web', {maxAge: app.get('maxAge')}));
+            app.webapp.use('/', app.express.static('./web', {maxAge: app.get('maxAge')}));
             app.webapp.use('/files', app.express.static('./test/files', {maxAge: app.get('maxAge')}));
         });
     }, function () {

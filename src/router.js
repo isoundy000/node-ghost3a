@@ -1,10 +1,12 @@
 "use strict";
 const WebSocket = require('ws');
 const Session = require('./session');
-const HEARTICK = '$heartick$';
-const RESPONSE = '$response$';
-const NOSYNTAX = '$nosyntax$';
-const INNERP2P = '$innerp2p$';
+const HEARTICK = '$heartick$';//心跳包路由
+const RESPONSE = '$response$';//响应请求路由
+const NOSYNTAX = '$nosyntax$';//响应语法错误路由
+const INNERP2P = '$innerp2p$';//跨进程p2p包路由
+const INNERGRP = '$innergrp$';//跨进程grp路由
+const INNERALL = '$innerall$';//跨进程广播路由
 const Router = function (app, link, sevs) {
     this.app = app;
     this.link = typeof link === 'string' ? JSON.parse(link) : link;
@@ -20,7 +22,8 @@ const Router = function (app, link, sevs) {
 Router.prototype.start = function (hander, heart, timeout) {
     const self = this;
     if (heart < 1000) throw Error(self.app.name + '-> socket检测间隔最少为1秒');
-    if (timeout < 30000) throw Error(self.app.name + '-> socket超时时间最少为30秒');
+    if (timeout < 10000) throw Error(self.app.name + '-> socket超时时间最少为10秒');
+    if (heart * 2 > timeout) throw Error(self.app.name + '-> 必须满足heart*2<=timeout');
     self.handler = hander || self.handler;
     self.app.wssapp.on('connection', function (socket, request) {
         //创建会话
@@ -91,14 +94,22 @@ Router.prototype.onSocketData = function (session, json) {
         self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.handler[pack.route](session, pack);
     } else if (pack.route === HEARTICK) {
-        //心跳包
+        //通用心跳包
         self.logger.trace('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         session.resetHeart();//更新最近心跳时间
         self.pushData(session, HEARTICK, pack.message);
     } else if (pack.route === INNERP2P) {
-        //P2P包
+        //跨进程P2P包
         self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         if (self.clients[pack.$uid$]) self.pushData(self.clients[pack.$uid$], pack.$route$, pack.message);
+    } else if (pack.route === INNERGRP) {
+        //跨进程GRP包
+        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.pushChannel(pack.$gid$, pack.$route$, pack.message);
+    } else if (pack.route === INNERALL) {
+        //跨进程ALL包
+        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.broadcast(pack.$route$, pack.message);
     } else {
         //无路由
         self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
@@ -165,7 +176,7 @@ Router.prototype.onServerHeart = function (heart, timeout) {
             aliveCnt++;
         }
     });
-    self.logger.trace('onServerHeart:', ' totalCnt->', totalCnt, ' aliveCnt->', aliveCnt, ' clients->', self.clients, ' channels->', self.channel);
+    self.logger.trace('onServerHeart:', ' totalCnt->', totalCnt, ' aliveCnt->', aliveCnt, ' channels->', self.channel, {clients: self.clients});
 };
 Router.prototype.response = function (session, pack, message) {
     const self = this;
@@ -326,6 +337,9 @@ Router.prototype.bridgesConnect = function (bridge) {
             bridge.socket = null;
             self.bridgesConnect(bridge);
         });
+        socket.on('message', function (buffer) {
+            self.logger.trace('bridgesOnData:', buffer.length, 'bytes ->', buffer);
+        });
     });
 };
 Router.prototype.bridgesPushData = function (bridge, route, message) {
@@ -359,6 +373,39 @@ Router.prototype.bridgesPushP2P = function (name, uid, route, message) {
         }
     }
     self.logger.debug('bridgesPushP2P:', name, uid, json.length, 'bytes ->', json);
+};
+Router.prototype.bridgesPushGrp = function (name, gid, route, message) {
+    const self = this;
+    const json = JSON.stringify({
+        route: INNERGRP,
+        $gid$: gid,
+        $route$: route,
+        message: message
+    });
+    const group = self.bridges[name];
+    for (let i = 0; i < group.length; i++) {
+        const bridge = group[i];
+        if (bridge.socket && bridge.socket.readyState === WebSocket.OPEN) {
+            bridge.socket.send(json);
+        }
+    }
+    self.logger.debug('bridgesPushGrp:', name, gid, json.length, 'bytes ->', json);
+};
+Router.prototype.bridgesPushAll = function (name, route, message) {
+    const self = this;
+    const json = JSON.stringify({
+        route: INNERALL,
+        $route$: route,
+        message: message
+    });
+    const group = self.bridges[name];
+    for (let i = 0; i < group.length; i++) {
+        const bridge = group[i];
+        if (bridge.socket && bridge.socket.readyState === WebSocket.OPEN) {
+            bridge.socket.send(json);
+        }
+    }
+    self.logger.debug('bridgesPushAll:', name, json.length, 'bytes ->', json);
 };
 /**
  * @param app

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>测试</title>
+    <title>单进程api测试</title>
 </head>
 <body>
 
@@ -31,7 +31,7 @@
     var roomId = 'test_room';
 
     function onOpenWss() {
-        client = new WebSocket("ws://192.168.31.229:8081/");
+        client = new WebSocket("ws://127.0.0.1:8081/");
         client.onopen = function (event) {
             console.log("onopen ...");
         };

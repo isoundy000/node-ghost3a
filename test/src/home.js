@@ -1,14 +1,17 @@
 "use strict";
-const Handler = function (app, router, servers) {
+const ROUTE_P2P_MSG = 'route_p2p_msg';
+const ROUTE_GRP_MSG = 'route_grp_msg';
+const ROUTE_GRP_ALL = 'route_all_msg';
+const Handler = function (app, router) {
     this.app = app;
     this.router = router;
-    this.servers = servers;
     this.logger = app.getLogger('router', __filename);
     //启动路由监听
-    router.start(this, 3000, 30000);
+    // router.start(this, 60000, 60000 * 2);
+    router.start(this, 3000, 10000);
 };
 Handler.prototype.onLogin = function (session, pack) {
-    session.bindUid(pack.message.uid);
+    this.router.bindUid(session, pack.message.uid);
     this.router.response(session, pack, '登录成功');
 };
 Handler.prototype.onJoinRoom = function (session, pack) {
@@ -32,8 +35,16 @@ Handler.prototype.onBroadcast = function (session, pack) {
 };
 Handler.prototype.onBeClose = function (session, pack) {
     this.router.pushData(session, 'onBeClose', "即将被动关闭");
-    // session.socket.close();
     session.socket.terminate();
+};
+Handler.prototype.onBridgePushP2P = function (session, pack) {
+    this.router.bridgesPushP2P('home', pack.message.uid, ROUTE_P2P_MSG, pack.message.context);
+};
+Handler.prototype.onBridgePushGrp = function (session, pack) {
+    this.router.bridgesPushGrp('home', pack.message.gid, ROUTE_GRP_MSG, pack.message.context);
+};
+Handler.prototype.onBridgePushAll = function (session, pack) {
+    this.router.bridgesPushAll('home', ROUTE_GRP_ALL, pack.message.context);
 };
 Handler.prototype.$_onServerHeart = function () {
     //同步发生的异常会被router.js捕获
@@ -49,9 +60,8 @@ Handler.prototype.$_onServerHeart = function () {
  *
  * @param app
  * @param router
- * @param servers
  * @returns {Handler}
  */
-module.exports = function (app, router, servers) {
-    return new Handler(app, router, servers);
+module.exports = function (app, router) {
+    return new Handler(app, router);
 };
