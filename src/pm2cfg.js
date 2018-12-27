@@ -43,8 +43,8 @@ Pm2cfg.prototype.getPm2Apps = function () {
                 MYAPP_HOST: item.host,//外网地址
                 MYAPP_PORT: item.port,//端口号码
                 MYAPP_INIP: item.inip || '',//内网ip
-                MYAPP_LINK: item.link || [],//需要连接的进程分组
-                MYAPP_SEVS: sevs//同种分组类型的地址列表
+                MYAPP_LINK: item.link || [],//需要连接的进程分组（他妈的某些版本的pm2不支持数组）
+                MYAPP_SEVS: sevs//同种分组类型的地址列表（他妈的某些版本的pm2不支持对象）
             };
             sevs[key].push({
                 host: item.host,
@@ -55,8 +55,13 @@ Pm2cfg.prototype.getPm2Apps = function () {
             apps.push(inst);
         }
     }
-    if (this.logLevel > 2) console.log('apps:\n', JSON.stringify(apps, null, 2));
-    else if (this.logLevel > 1) console.log('apps:\n', apps);
+    //将MYAPP_LINK和MYAPP_SEVS属性转换为字符串
+    for (let i = 0; i < apps.length; i++) {
+        let inst = apps[i];
+        inst['env_' + this.env].MYAPP_LINK = JSON.stringify(inst['env_' + this.env].MYAPP_LINK);
+        inst['env_' + this.env].MYAPP_SEVS = JSON.stringify(inst['env_' + this.env].MYAPP_SEVS);
+    }
+    if (this.logLevel > 1) console.log('apps:\n', apps);
     return apps;
 };
 module.exports = {
