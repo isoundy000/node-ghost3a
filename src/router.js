@@ -408,10 +408,10 @@ Router.prototype.bridgesPushAll = function (name, route, message) {
     self.logger.debug('bridgesPushAll:', name, json.length, 'bytes ->', json);
 };
 /**
- * @param app
- * @param link
- * @param sevs
- * @returns {Router}
+ * @param app context类实例
+ * @param link 本进程需要连接的进程分组
+ * @param sevs 工程的全部进程集合
+ * @returns {Router} 类实例
  */
 module.exports = function (app, link, sevs) {
     return new Router(app, link, sevs);

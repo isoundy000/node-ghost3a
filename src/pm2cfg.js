@@ -1,12 +1,13 @@
 "use strict";
 const fs = require('fs');
 const path = require('path');
-const Pm2cfg = function (processArgv, bootfile, configfile, debug) {
-    this.debug = debug;
+const Pm2cfg = function (processArgv, bootfile, configfile, logLevel) {
+    this.logLevel = logLevel;
     this.env = processArgv[processArgv.length - 1];//最后一个参数是应用环境类型
     this.dir = path.dirname(bootfile);
     this.data = JSON.parse(fs.readFileSync(this.dir + configfile, 'utf8'));
-    if (this.debug) console.log(this.env, this.dir);
+    if (this.logLevel > 0) console.log('env:', this.env);
+    if (this.logLevel > 0) console.log('dir:', this.dir);
 };
 
 Pm2cfg.prototype.getPm2Apps = function () {
@@ -54,7 +55,8 @@ Pm2cfg.prototype.getPm2Apps = function () {
             apps.push(inst);
         }
     }
-    if (this.debug) console.log(JSON.stringify(apps, null, 2));
+    if (this.logLevel > 2) console.log('apps:\n', JSON.stringify(apps, null, 2));
+    else if (this.logLevel > 1) console.log('apps:\n', apps);
     return apps;
 };
 module.exports = {
@@ -62,10 +64,10 @@ module.exports = {
      * @param processArgv 进程启动命令参数列表
      * @param bootfile PM2启动文件ecosystem.config.js的路径
      * @param configfile 服务器配置文件相对路径
-     * @param debug 是否打印调试信息
+     * @param logLevel 打印调试信息级别
      * @returns {Pm2cfg} 类实例
      */
-    create: function (processArgv, bootfile, configfile, debug) {
-        return new Pm2cfg(processArgv, bootfile, configfile, debug);
+    create: function (processArgv, bootfile, configfile, logLevel) {
+        return new Pm2cfg(processArgv, bootfile, configfile, logLevel);
     }
 };
