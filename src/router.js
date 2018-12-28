@@ -327,7 +327,7 @@ Router.prototype.bridgesConnect = function (bridge) {
     //{rejectUnauthorized:false}解决用内网连接时证书altnames不匹配的问题
     const socket = new WebSocket(bridge.prot + '://' + bridge.host + ':' + bridge.port + '/', void 0, {rejectUnauthorized: false});
     socket.on('error', function (error) {
-        if (error.code !== 'ECONNREFUSED') self.logger.error(error);
+        if (bridge.counts > 0) self.logger.warn(error.syscall, error.code);
         bridge.socket = null;
         socket.terminate();//强制关闭连接
         self.bridgesConnect(bridge);
