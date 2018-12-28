@@ -2,13 +2,15 @@
 
 分布式服务器集成框架，适用于快速搭建web服务器、websocket服务器，支持ssl加密、数据压缩、文件上传，可扩展性强，轻量级整合。
 
-温馨提示：本框架推荐使用pm2进行进程管理，本框架依赖mongo数据库，未安装mongo数据库的请先安装。
+温馨提示：本框架推荐使用pm2进行进程管理。
 
 安装pm2命令： npm install pm2 -g
 
 安装本框架命令：npm install node-ghost3a
 
 ### 通过本项目test文件中的测试工程可快速入门
+
+ 注：本测试工程依赖mongo数据库，未安装mongo数据库的请先安装
 
  先：git clone git@github.com:yangfanyu/node-ghost3a.git
 

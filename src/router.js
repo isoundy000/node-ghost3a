@@ -50,9 +50,9 @@ Router.prototype.start = function (hander, heart, timeout) {
             self.logger.error('未处理的心跳异常：', e);
         }
     }, heart);
-    self.logger.info('router startup success.');
     //连接到其他的服务器进程
     self.bridgesInit(heart, timeout);
+    self.logger.info('router startup success.');
 };
 Router.prototype.destroy = function () {
     const self = this;
@@ -303,6 +303,7 @@ Router.prototype.bridgesInit = function (heart, timeout) {
             });
         }
     }
+    self.logger.trace('bridgesInit:', self.bridges);
     //创建连接任务
     for (let key in self.bridges) {
         const group = self.bridges[key];
@@ -323,8 +324,10 @@ Router.prototype.bridgesInit = function (heart, timeout) {
 };
 Router.prototype.bridgesConnect = function (bridge) {
     const self = this;
-    const socket = new WebSocket(bridge.prot + '://' + bridge.host + ':' + bridge.port + '/', void 0, void 0);
+    //{rejectUnauthorized:false}解决用内网连接时证书altnames不匹配的问题
+    const socket = new WebSocket(bridge.prot + '://' + bridge.host + ':' + bridge.port + '/', void 0, {rejectUnauthorized: false});
     socket.on('error', function (error) {
+        if (error.code !== 'ECONNREFUSED') self.logger.error(error);
         bridge.socket = null;
         socket.terminate();//强制关闭连接
         self.bridgesConnect(bridge);
