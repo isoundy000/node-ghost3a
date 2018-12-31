@@ -1,15 +1,21 @@
 "use strict";
 const fs = require('fs');
 const path = require('path');
-const Pm2cfg = function (processArgv, bootfile, configfile, logLevel) {
+const Pm2cfg = function (processArgv, bootfile, configfile, hostFile, logLevel) {
     const envIndex = processArgv.indexOf('--env');
     if (envIndex < 0 || envIndex === processArgv.length - 1) return;
     this.logLevel = logLevel;
     this.env = processArgv[envIndex + 1];//--env参数后面的值是运行环境类型
-    this.dir = path.dirname(bootfile);
-    this.data = JSON.parse(fs.readFileSync(this.dir + configfile, 'utf8'));
+    try {
+        this.host = hostFile ? fs.readFileSync(hostFile, 'utf8').trim() : null;//指定文件中读取的主机名称
+    } catch (e) {
+        this.host = null;
+    }
+    this.base = path.dirname(bootfile);
+    this.data = JSON.parse(fs.readFileSync(configfile.replace('${base}', this.base), 'utf8'));
     if (this.logLevel > 0) console.log('env:', this.env);
-    if (this.logLevel > 0) console.log('dir:', this.dir);
+    if (this.logLevel > 0) console.log('host:', this.host);
+    if (this.logLevel > 0) console.log('base:', this.base);
 };
 
 Pm2cfg.prototype.getPm2Apps = function () {
@@ -25,6 +31,16 @@ Pm2cfg.prototype.getPm2Apps = function () {
         sevs[key] = [];
         for (let i = 0; i < group.length; i++) {
             let item = group[i];
+            if (pro.bind && pro.bind.indexOf(this.env) >= 0) {
+                if (!this.host) {
+                    throw Error('未读取到主机名!');
+                }
+                if (item.host === '${hostname}') {
+                    item.host = this.host;//替换为当前主机域名
+                } else if (item.host !== this.host) {
+                    continue;//过滤掉主机名不匹配的进程
+                }
+            }
             //pm2进程属性
             let inst = {
                 name: item.name || ((pro.name ? pro.name + '-' : "") + key),
@@ -32,7 +48,7 @@ Pm2cfg.prototype.getPm2Apps = function () {
                 instances: item.instances || pro.instances || '1',
                 exec_mode: item.exec_mode || pro.exec_mode || 'cluster',
                 output: item.output || pro.output || '/dev/null',
-                error: item.error || pro.error || (this.dir + '/logs/pm2-error.log')
+                error: item.error || pro.error || (this.base + '/logs/pm2-error.log')
             };
             //app进行属性
             inst['env_' + this.env] = {
@@ -66,12 +82,13 @@ Pm2cfg.prototype.getPm2Apps = function () {
 module.exports = {
     /**
      * @param processArgv 进程启动命令参数列表
-     * @param bootfile PM2启动文件ecosystem.config.js的路径
-     * @param configfile 服务器配置文件相对路径
+     * @param bootfile PM2启动文件ecosystem.config.js的绝对路径
+     * @param configfile 服务器配置文件绝对路径
+     * @param hostFile 当前主机域名配置绝对路径
      * @param logLevel 打印调试信息级别
      * @returns {Pm2cfg} 类实例
      */
-    create: function (processArgv, bootfile, configfile, logLevel) {
-        return new Pm2cfg(processArgv, bootfile, configfile, logLevel);
+    create: function (processArgv, bootfile, configfile, hostFile, logLevel) {
+        return new Pm2cfg(processArgv, bootfile, configfile, hostFile, logLevel);
     }
 };

@@ -32,7 +32,7 @@
   "production": {
     "home": [
       {
-        "host": "lan.ghostaaa.com",
+        "host": "${hostname}",
         "port": "8081",
         "inip": "127.0.0.1",
         "link": [
@@ -40,7 +40,7 @@
         ]
       },
       {
-        "host": "lan.ghostaaa.com",
+        "host": "${hostname}",
         "port": "8082",
         "inip": "127.0.0.1",
         "link": [
@@ -64,6 +64,9 @@
     "ssls": {
       "development": [],
       "production": []
-    }
+    },
+    "bind": [
+      "production"
+    ]
   }
 }
