@@ -335,7 +335,7 @@ Router.prototype.bridgesConnect = function (bridge) {
     socket.on('open', function () {
         bridge.socket = socket;
         bridge.counts++;
-        self.logger.debug('内部连接:', bridge.name, bridge.host + ':' + bridge.port, '已经建立,次数:', bridge.counts);
+        self.logger.info('内部连接:', bridge.name, bridge.host + ':' + bridge.port, '已经建立,次数:', bridge.counts);
         socket.on('close', function (code, reason) {
             bridge.socket = null;
             self.bridgesConnect(bridge);
