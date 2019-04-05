@@ -84,6 +84,7 @@ Router.prototype.onSocketData = function (session, json) {
         return;
     }
     if (!pack || !pack.route) {
+        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request by 2'
