@@ -75,16 +75,21 @@ Router.prototype.onSocketData = function (session, json) {
     try {
         pack = JSON.parse(json);
     } catch (e) {
-        self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request'
         });
         return;
     }
-    if (pack.route.indexOf('$_') === 0) {
+    if (!pack.route) {
+        self.pushData(session, NOSYNTAX, {
+            code: 400,
+            data: 'Bad Request'
+        });
+    } else if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
-        self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
             code: 405,
             data: 'Method Not Allowed'
@@ -112,7 +117,7 @@ Router.prototype.onSocketData = function (session, json) {
         self.broadcast(pack.$route$, pack.message);
     } else {
         //无路由
-        self.logger.warn('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
             code: 501,
             data: 'Not Implemented'
@@ -177,6 +182,17 @@ Router.prototype.onServerHeart = function (heart, timeout) {
         }
     });
     self.logger.trace('onServerHeart:', ' totalCnt->', totalCnt, ' aliveCnt->', aliveCnt, ' channels->', self.channel, {clients: self.clients});
+};
+Router.prototype.forceClose = function (session) {
+    const self = this;
+    //从客户端列表移除
+    delete self.clients[session.uid];
+    //退出已加入的所有分组
+    session.eachChannel(function (gid) {
+        self.quitChannel(session, gid);
+    });
+    //强制关闭连接
+    session.socket.terminate();
 };
 Router.prototype.response = function (session, pack, message) {
     const self = this;
