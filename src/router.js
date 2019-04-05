@@ -71,22 +71,24 @@ Router.prototype.destroy = function () {
  */
 Router.prototype.onSocketData = function (session, json) {
     const self = this;
-    let pack;
+    let pack = null;
     try {
         pack = JSON.parse(json);
     } catch (e) {
         self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
-            data: 'Bad Request'
+            data: 'Bad Request by 1'
         });
+        self.forceClose(session);//强制清除会话
         return;
     }
-    if (!pack.route) {
+    if (!pack || !pack.route) {
         self.pushData(session, NOSYNTAX, {
             code: 400,
-            data: 'Bad Request'
+            data: 'Bad Request by 2'
         });
+        self.forceClose(session);//强制清除会话
     } else if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
         self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
@@ -94,6 +96,7 @@ Router.prototype.onSocketData = function (session, json) {
             code: 405,
             data: 'Method Not Allowed'
         });
+        self.forceClose(session);//强制清除会话
     } else if (self.handler[pack.route]) {
         //转发到路由对象的对应函数
         self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
@@ -122,6 +125,7 @@ Router.prototype.onSocketData = function (session, json) {
             code: 501,
             data: 'Not Implemented'
         });
+        self.forceClose(session);//强制清除会话
     }
 };
 Router.prototype.onSocketClose = function (session, code, reason) {
@@ -129,11 +133,9 @@ Router.prototype.onSocketClose = function (session, code, reason) {
     if (self.handler.$_onSocketClose) {
         self.handler.$_onSocketClose(session, code, reason);
     }
-    //从客户端列表移除
-    delete self.clients[session.uid];
-    //退出已加入的所有分组
+    delete self.clients[session.uid];//从客户端列表移除
     session.eachChannel(function (gid) {
-        self.quitChannel(session, gid);
+        self.quitChannel(session, gid);//退出已加入的所有分组
     });
     self.logger.info('onSocketClose:', session.id, session.uid, code, reason);
 };
@@ -142,13 +144,7 @@ Router.prototype.onSocketError = function (session, error) {
     if (self.handler.$_onSocketError) {
         self.handler.$_onSocketError(session, error);
     }
-    //从客户端列表移除
-    delete self.clients[session.uid];
-    //退出已加入的所有分组
-    session.eachChannel(function (gid) {
-        self.quitChannel(session, gid);
-    });
-    session.socket.terminate();//强制关闭连接
+    self.forceClose(session);//强制清除会话
     self.logger.error('onSocketError:', session.id, session.uid, error);
 };
 Router.prototype.onSocketTimeout = function (session, timeout) {
@@ -156,13 +152,7 @@ Router.prototype.onSocketTimeout = function (session, timeout) {
     if (self.handler.$_onSocketTimeout) {
         self.handler.$_onSocketTimeout(session, timeout);
     }
-    //从客户端列表移除
-    delete self.clients[session.uid];
-    //退出已加入的所有分组
-    session.eachChannel(function (gid) {
-        self.quitChannel(session, gid);
-    });
-    session.socket.terminate();//强制关闭连接
+    self.forceClose(session);//强制清除会话
     self.logger.warn('onSocketTimeout:', session.id, session.uid);
 };
 Router.prototype.onServerHeart = function (heart, timeout) {
@@ -185,14 +175,11 @@ Router.prototype.onServerHeart = function (heart, timeout) {
 };
 Router.prototype.forceClose = function (session) {
     const self = this;
-    //从客户端列表移除
-    delete self.clients[session.uid];
-    //退出已加入的所有分组
+    delete self.clients[session.uid];//从客户端列表移除
     session.eachChannel(function (gid) {
-        self.quitChannel(session, gid);
+        self.quitChannel(session, gid);//退出已加入的所有分组
     });
-    //强制关闭连接
-    session.socket.terminate();
+    session.socket.terminate();//强制关闭连接
 };
 Router.prototype.response = function (session, pack, message) {
     const self = this;
