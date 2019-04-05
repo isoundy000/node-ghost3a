@@ -41,7 +41,7 @@ Router.prototype.start = function (hander, heart, timeout) {
         socket.on('error', function (error) {
             self.onSocketError(session, error);
         });
-        self.logger.info('on connection', session.ip);
+        self.logger.info('on connection', session.ip, session.id, session.uid);
     });
     self.ticker = setInterval(function () {
         try {
@@ -75,7 +75,7 @@ Router.prototype.onSocketData = function (session, json) {
     try {
         pack = JSON.parse(json);
     } catch (e) {
-        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request by 1'
@@ -84,7 +84,7 @@ Router.prototype.onSocketData = function (session, json) {
         return;
     }
     if (!pack || !pack.route) {
-        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.pushData(session, NOSYNTAX, {
             code: 400,
             data: 'Bad Request by 2'
@@ -92,7 +92,7 @@ Router.prototype.onSocketData = function (session, json) {
         self.forceClose(session);//强制清除会话
     } else if (pack.route.indexOf('$_') === 0) {
         //该前缀的函数作为路由对象的私有函数，不进行转发
-        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
             code: 405,
             data: 'Method Not Allowed'
@@ -100,28 +100,28 @@ Router.prototype.onSocketData = function (session, json) {
         self.forceClose(session);//强制清除会话
     } else if (self.handler[pack.route]) {
         //转发到路由对象的对应函数
-        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.debug('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.handler[pack.route](session, pack);
     } else if (pack.route === HEARTICK) {
         //通用心跳包
-        self.logger.trace('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.trace('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         session.resetHeart();//更新最近心跳时间
         self.pushData(session, HEARTICK, pack.message);
     } else if (pack.route === INNERP2P) {
         //跨进程P2P包
-        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.debug('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         if (self.clients[pack.$uid$]) self.pushData(self.clients[pack.$uid$], pack.$route$, pack.message);
     } else if (pack.route === INNERGRP) {
         //跨进程GRP包
-        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.debug('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.pushChannel(pack.$gid$, pack.$route$, pack.message);
     } else if (pack.route === INNERALL) {
         //跨进程ALL包
-        self.logger.debug('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.debug('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.broadcast(pack.$route$, pack.message);
     } else {
         //无路由
-        self.logger.error('onSocketData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.error('onSocketData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
         self.response(session, pack, {
             code: 501,
             data: 'Not Implemented'
@@ -138,7 +138,7 @@ Router.prototype.onSocketClose = function (session, code, reason) {
     session.eachChannel(function (gid) {
         self.quitChannel(session, gid);//退出已加入的所有分组
     });
-    self.logger.info('onSocketClose:', session.id, session.uid, code, reason);
+    self.logger.info('onSocketClose:', session.ip, session.id, session.uid, code, reason);
 };
 Router.prototype.onSocketError = function (session, error) {
     const self = this;
@@ -146,7 +146,7 @@ Router.prototype.onSocketError = function (session, error) {
         self.handler.$_onSocketError(session, error);
     }
     self.forceClose(session);//强制清除会话
-    self.logger.error('onSocketError:', session.id, session.uid, error);
+    self.logger.error('onSocketError:', session.ip, session.id, session.uid, error);
 };
 Router.prototype.onSocketTimeout = function (session, timeout) {
     const self = this;
@@ -154,7 +154,7 @@ Router.prototype.onSocketTimeout = function (session, timeout) {
         self.handler.$_onSocketTimeout(session, timeout);
     }
     self.forceClose(session);//强制清除会话
-    self.logger.warn('onSocketTimeout:', session.id, session.uid);
+    self.logger.warn('onSocketTimeout:', session.ip, session.id, session.uid);
 };
 Router.prototype.onServerHeart = function (heart, timeout) {
     const self = this;
@@ -192,7 +192,7 @@ Router.prototype.response = function (session, pack, message) {
     if (session.socket.readyState === WebSocket.OPEN) {
         session.socket.send(json);
     }
-    self.logger.debug('response:', session.id, session.uid, json.length, 'bytes ->', json);
+    self.logger.debug('response:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
 };
 Router.prototype.pushData = function (session, route, message) {
     const self = this;
@@ -204,9 +204,9 @@ Router.prototype.pushData = function (session, route, message) {
         session.socket.send(json);
     }
     if (route === HEARTICK) {
-        self.logger.trace('pushData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.trace('pushData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
     } else {
-        self.logger.debug('pushData:', session.id, session.uid, json.length, 'bytes ->', json);
+        self.logger.debug('pushData:', session.ip, session.id, session.uid, json.length, 'bytes ->', json);
     }
 };
 Router.prototype.bindUid = function (session, uid) {
@@ -223,7 +223,7 @@ Router.prototype.joinChannel = function (session, gid) {
         session.joinChannel(gid);
     }
     self.channel[gid] = group;
-    self.logger.debug('joinChannel:', gid, session.id, session.uid);
+    self.logger.debug('joinChannel:', gid, session.ip, session.id, session.uid);
     self.logger.trace('joinChannel', self.channel, session.channel);
 };
 Router.prototype.quitChannel = function (session, gid) {
@@ -239,7 +239,7 @@ Router.prototype.quitChannel = function (session, gid) {
     } else {
         delete self.channel[gid];
     }
-    self.logger.debug('quitChannel:', gid, session.id, session.uid);
+    self.logger.debug('quitChannel:', gid, session.ip, session.id, session.uid);
     self.logger.trace('quitChannel', self.channel, session.channel);
 };
 Router.prototype.deleteChannel = function (gid) {
