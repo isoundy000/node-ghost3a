@@ -21,7 +21,8 @@
 <button onclick="onDeleteRoom()">onDeleteRoom</button>
 <button onclick="onBroadcast()">onBroadcast</button>
 <button onclick="onBeClose()">onBeClose</button>
-<button onclick="nosyntax()">nosyntax</button>
+<button onclick="nosyntax1()">nosyntax1</button>
+<button onclick="nosyntax2()">nosyntax2</button>
 <button onclick="$_deny()">$_deny</button>
 <button onclick="norouter()">norouter</button>
 <button onclick="$heartick$()">$heartick$</button>
@@ -122,8 +123,12 @@
         }));
     }
 
-    function nosyntax() {
+    function nosyntax1() {
         client.send('测试错误的语法');
+    }
+
+    function nosyntax2() {
+        client.send('{}');
     }
 
     function $_deny() {

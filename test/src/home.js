@@ -11,7 +11,8 @@ const Handler = function (app, router) {
         response.json({code: 200, data: Date.now()});
     });
     //启动websocket路由监听
-    router.start(this, 60000, 60000 * 2);
+    // router.start(this, 60000, 60000 * 2);
+    router.start(this, 10000, 10000 * 2);
 };
 Handler.prototype.onLogin = function (session, pack) {
     this.router.bindUid(session, pack.message.uid);
